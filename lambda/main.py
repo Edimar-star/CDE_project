@@ -1,5 +1,6 @@
 from scipy.spatial import cKDTree
 from netCDF4 import Dataset
+from sodapy import Socrata
 from datetime import date
 import pandas as pd
 import numpy as np
@@ -137,7 +138,7 @@ def lambda_handler(event, context):
 
     # Definicion del bucket de s3
     s3          = boto3.client('s3')
-    bucket_name = ''
+    bucket_name = 'source-data-bucket'
 
     # ------------------------------ FOREST FIRE ------------------------------
     df_ff = None
@@ -182,6 +183,27 @@ def lambda_handler(event, context):
 
     # eliminamos los datos
     del df_ndvi
+    gc.collect()
+
+    # ------------------------------ DIVIPOLAS --------------------------------
+    client              = Socrata("www.datos.gov.co", None)
+    results             = client.get("gdxc-w37w", limit=2000)
+    df_divipolas        = pd.DataFrame.from_records(results)
+
+    fix_number                      = lambda x: int(str(x).replace(',', ''))
+    df_divipolas['latitud']         = df_divipolas['latitud'].apply(fix_number)
+    df_divipolas['longitud']        = df_divipolas['longitud'].apply(fix_number)
+    
+    # guardamos los datos
+    csv_buffer          = dataframe_a_csv_buffer(df_divipolas)
+    s3.put_object(
+        Bucket=bucket_name,
+        Key='raw/divipolas.csv',
+        Body=csv_buffer.getvalue()
+    )
+
+    # eliminamos los datos
+    del df_divipolas
     gc.collect()
 
     # ------------------------------ GLOBAL CLIMATE ------------------------------

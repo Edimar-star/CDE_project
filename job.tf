@@ -14,7 +14,7 @@ resource "aws_glue_job" "glue_job" {
     }
     default_arguments = {
       "--enable-auto-scaling"               = "true"
-      "--enable-continous-cloudwatch-log"   = "true"
+      "--enable-continuous-cloudwatch-log"  = "true"
       "--datalake-formats"                  = "delta"
       "--source-path"                       = "s3://${aws_s3_bucket.source-data-bucket.id}/"
       "--destination-path"                  = "s3://${aws_s3_bucket.target-data-bucket.id}/"
