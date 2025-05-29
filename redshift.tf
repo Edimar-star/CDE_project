@@ -68,7 +68,7 @@ resource "aws_redshift_cluster" "main" {
   cluster_identifier       = "redshift-cluster"
   database_name            = "forest_fire_data"
   master_username          = "adminuser"
-  master_password          = "password1234"
+  master_password          = "#PasswordOfRedshift1234"
   node_type                = "dc2.large"
   number_of_nodes          = 1
   publicly_accessible      = true

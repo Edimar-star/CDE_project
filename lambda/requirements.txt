@@ -1,0 +1,7 @@
+scipy
+netCDF4
+sodapy
+pandas
+numpy
+requests
+# boto3 no se incluye porque ya está en AWS Lambda

@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "code-bucket" {
 # Glue scripts
 resource "aws_s3_object" "scripts" {
   for_each     = var.glue_scripts
-  bucket       = aws_s3_bucket.code_bucket.id
+  bucket       = aws_s3_bucket.code-bucket.id
   key          = "glue_scripts/${each.key}"
   source       = "${path.module}/${each.value}"
   etag         = filemd5("${path.module}/${each.value}")
