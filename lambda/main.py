@@ -11,9 +11,9 @@ import time
 import gc
 import io
 
+
 # Revisa si las coordenadas se encuentran en el rango correcto
 def check_latlon_bounds(lat, lon, lat_index, lon_index, lat_target, lon_target):
-    #check final indices are in right bounds
     if(lat[lat_index]>lat_target):
         if(lat_index!=0):
             lat_index = lat_index - 1
@@ -29,6 +29,7 @@ def check_latlon_bounds(lat, lon, lat_index, lon_index, lat_target, lon_target):
 
     return [lat_index, lon_index]
 
+
 # Obtencion de los indices de valores de un array
 def get_indexes(data, points):
     data_reshaped = data.filled().reshape(-1, 1)
@@ -37,6 +38,7 @@ def get_indexes(data, points):
     _, indexes = tree.query(query_points)
 
     return indexes
+
 
 # Datos climaticos por fecha
 def get_climate_data_by_date(varname, filehandle, time_values, lat_values, lon_values, year, lat_min, lon_min, lat_max, lon_max):
@@ -88,6 +90,7 @@ def get_climate_data_by_date(varname, filehandle, time_values, lat_values, lon_v
 
     return list(data[time_indexes, lat_indexes, lon_indexes].filled(np.nan))
 
+
 # Datos climaticos de un pais
 def get_climate_data_country(df_ff_values, varnames):
     ans = {varname: [] for varname in ["date", "latitude", "longitude"] + varnames}
@@ -126,6 +129,7 @@ def get_climate_data_country(df_ff_values, varnames):
 
     return ans
 
+
 # Función que convierte un DataFrame a CSV en memoria
 def dataframe_a_csv_buffer(df):
     buffer = io.StringIO()
@@ -133,6 +137,7 @@ def dataframe_a_csv_buffer(df):
     return buffer
 
 
+# Lambda function
 def lambda_handler(event, context):
     start_time  = time.time()
 
@@ -143,7 +148,10 @@ def lambda_handler(event, context):
     # ------------------------------ FOREST FIRE ------------------------------
     df_ff = None
     for year in range(2000, 2024):
-        url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
+        if year < 2012:
+            url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
+        else:
+            url = f"https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/{year}/viirs-snpp_{year}_Colombia.csv"
         
         if df_ff is None:
             df_ff = pd.read_csv(url)
