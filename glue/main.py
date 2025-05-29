@@ -3,7 +3,7 @@ from awsglue.utils import getResolvedOptions
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.context import SparkContext
-from pyspark.sql.functions import regexp_replace, col, year, to_date, abs, datediff, row_number, udf
+from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 from pyspark.sql.window import Window
 
@@ -33,8 +33,8 @@ def asign_class(value):
 
     return "h"
 
-asign_class_udf = udf(asign_class, StringType())
-df_forest_fire = df.withColumn("confidence", asign_class_udf(df_forest_fire["confidence"]))
+asign_class_udf = F.udf(asign_class, StringType())
+df_forest_fire = df_forest_fire.withColumn("confidence", asign_class_udf(df_forest_fire["confidence"]))
 
 # ---------------------------------- NDVI ----------------------------------
 dyf_ndvi = glueContext.create_dynamic_frame.from_catalog(
@@ -67,32 +67,32 @@ df_global_climate = dyf_global_climate.toDF()
 
 # ------------------ UNION DATA FOREST_FIRE - GLOBAL_CLIMATE --------------------
 kelvin = 273.15
-df_global_climate       = df_global_climate.withColumn("tmin", col("tmin") + kelvin)
-df_global_climate       = df_global_climate.withColumn("tmax", col("tmax") + kelvin)
+df_global_climate       = df_global_climate.withColumn("tmin", F.col("tmin") + kelvin)
+df_global_climate       = df_global_climate.withColumn("tmax", F.col("tmax") + kelvin)
 df_final                = df_forest_fire.join(
     df_global_climate, 
     on=["latitude", "longitude", "date"], 
-    how="inner"
+    how="left"
 )
 
 
 # -------------- UNION DATA FOREST_FIRE - POPULATION_DENSITY --------------------
-df_population_density   = df_population_density.withColumn("date", to_date("date", "yyyy-MM-dd"))
-df_population_density   = df_population_density.withColumn("year", year("date"))
+df_population_density   = df_population_density.withColumn("date", F.to_date("date", "yyyy-MM-dd"))
+df_population_density   = df_population_density.withColumn("year", F.year("date"))
 
 # join por latitude, longitude y year
 df_final                = df_final.join(
     df_population_density, 
     on=["latitude", "longitude", "year"], 
-    how="inner"
+    how="left"
 )
 df_final = df_final.drop("year")
 
 
 # ----------------------- UNION DATA NDVI - DIVIPOLAS ---------------------------
 # join datasets
-df_ndvi_clean           = df_ndvi.withColumn("ADM2_PCODE_clean", regexp_replace("ADM2_PCODE", "^CO", ""))
-joined_df_ndvi          = df_ndvi_clean.join(df_divipolas, df_ndvi_clean["ADM2_PCODE_clean"] == df_divipolas["cod_mpio"], how="inner")
+df_ndvi_clean           = df_ndvi.withColumn("ADM2_PCODE_clean", F.regexp_replace("ADM2_PCODE", "^CO", ""))
+joined_df_ndvi          = df_ndvi_clean.join(df_divipolas, df_ndvi_clean["ADM2_PCODE_clean"] == df_divipolas["cod_mpio"], how="left")
 
 # select and rename columns
 df_ndvi_result          = joined_df_ndvi.select("latitud", "longitud", "date", "n_pixels", "vim", "vim_avg", "viq")
@@ -100,36 +100,36 @@ df_ndvi_result          = df_ndvi_result.withColumnRenamed("latitud", "latitude"
 df_ndvi_result          = df_ndvi_result.withColumnRenamed("longitud", "longitude")
 
 # ---------------------- UNION DATA FOREST_FIRE - NDVI --------------------------
-# Crear un cross join para comparar todas las combinaciones
+# Parámetro de tolerancia temporal (días)
+days_limit              = 5
+
+# Convertir fechas si es necesario
+df_final                = df_final.withColumn("date", F.col("date").cast("date"))
+df_ndvi_result          = df_ndvi_result.withColumn("date", F.col("date").cast("date"))
+
+# Cross join
 joined                  = df_final.alias("a").crossJoin(df_ndvi_result.alias("b"))
 
-# Calcular la distancia entre coordenadas (simple Euclideana 2D) y diferencia de días
-joined                  = joined.withColumn(
-    "spatial_distance", 
-    ((col("a.latitude") - col("b.latitude"))**2 + (col("a.longitude") - col("b.longitude"))**2)
-)
+# Calcular diferencia de fecha y distancia geográfica (Euclidiana aproximada)
+joined                  = joined.withColumn("date_diff", F.abs(F.datediff(F.col("a.date"), F.col("b.date"))))
+joined                  = joined.withColumn("distance", F.sqrt(
+    F.pow(F.col("a.latitude") - F.col("b.latitude"), 2) +
+    F.pow(F.col("a.longitude") - F.col("b.longitude"), 2)
+))
 
-joined                  = joined.withColumn(
-    "temporal_distance", 
-    abs(datediff(col("a.date"), col("b.date")))
-)
+# Filtrar por días de diferencia
+joined                  = joined.filter(F.col("date_diff") <= days_limit)
 
-# Crear un ranking de menor distancia combinada (puedes ponderar si quieres)
-joined                  = joined.withColumn(
-    "rank", 
-    row_number().over(
-        Window.partitionBy("a.latitude", "a.longitude", "a.date")
-        .orderBy(col("temporal_distance") + col("spatial_distance"))
-    )
-)
+# Ordenar por menor distancia y menor diferencia de fecha
+window_spec             = Window.partitionBy("a.latitude", "a.longitude", "a.date").orderBy(F.col("distance").asc(), F.col("date_diff").asc())
 
-# Quedarse solo con el más cercano
-closest = joined.filter(col("rank") == 1).drop("rank", "spatial_distance", "temporal_distance")
+# Quedarse solo con la fila más cercana
+closest                 = joined.withColumn("rn", F.row_number().over(window_spec)).filter(F.col("rn") == 1).drop("rn", "date_diff", "distance")
 
 # Quitar prefijos
-result = closest.select(
-    [col(f"a.{c}").alias(c) for c in df1.columns] + 
-    [col(f"b.{c}").alias(f"{c}_from_df2") for c in df2.columns if c not in df1.columns]
+result                  = closest.select(
+    [F.col(f"a.{c}").alias(c) for c in df_final.columns] + 
+    [F.col(f"b.{c}").alias(f"{c}_from_df_ndvi_result") for c in df_ndvi_result.columns if c not in df_final.columns]
 )
 
 # Renombramiento de columnas
@@ -146,6 +146,9 @@ columns = {
 
 for old_name, new_name in columns.items():
     result = result.withColumnRenamed(old_name, new_name)
+
+# Seleccion de columnas
+result = result.select(*columns.values())
 
 # -------------------------------- FINISH JOB --------------------------------
 result.write.mode('overwrite').parquet(f's3://target-data-bucket/forest_fire_COLOMBIA/')

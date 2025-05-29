@@ -148,15 +148,16 @@ def lambda_handler(event, context):
     # ------------------------------ FOREST FIRE ------------------------------
     df_ff = None
     for year in range(2000, 2024):
-        if year < 2012:
-            url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
-        else:
-            url = f"https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/{year}/viirs-snpp_{year}_Colombia.csv"
-        
+        url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
+
         if df_ff is None:
             df_ff = pd.read_csv(url)
         else:
             df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
+
+    for year in range(2012, 2024):
+        url = f"https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/{year}/viirs-snpp_{year}_Colombia.csv"
+        df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
 
     df_ff = pd.merge(
         df_ff.sort_values(by="acq_date")
@@ -198,7 +199,7 @@ def lambda_handler(event, context):
     results             = client.get("gdxc-w37w", limit=2000)
     df_divipolas        = pd.DataFrame.from_records(results)
 
-    fix_number                      = lambda x: int(str(x).replace(',', ''))
+    fix_number                      = lambda x: float(str(x).replace(',', '.'))
     df_divipolas['latitud']         = df_divipolas['latitud'].apply(fix_number)
     df_divipolas['longitud']        = df_divipolas['longitud'].apply(fix_number)
     
