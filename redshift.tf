@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 # Role para Redshift con permisos de lectura en S3
 resource "aws_iam_role" "redshift_s3_role" {
   name = "RedshiftS3AccessRole"
