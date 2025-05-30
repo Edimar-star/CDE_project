@@ -38,7 +38,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
   role_arn = aws_iam_role.step_function_role.arn
 
   definition = jsonencode({
-    StartAt: "LambdaRun1",
+    StartAt: "LambdaRun",
     States: {
       LambdaRun: {
         Type: "Task",
