@@ -26,7 +26,7 @@ resource "aws_lambda_function" "etl_lambda" {
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
-  filename          = "lambda_layer.zip"
+  filename          = "${path.module}/lambda/lambda_layer.zip"
   layer_name        = "etl_layer"
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.9"]
 }
