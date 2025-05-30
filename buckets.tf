@@ -1,26 +1,18 @@
-resource "random_string" "suffix" {
-  length  = 6
-  upper   = false
-  lower   = true
-  numeric = true
-  special = false
-}
-
 # S3 Bucket for Source Data
 resource "aws_s3_bucket" "source-data-bucket" {
-  bucket        = "source-data-bucket-${random_string.suffix.result}"
+  bucket        = "source-data-bucket-6i2caq"
   force_destroy = true
 }
 
 # S3 Bucket for processed data
 resource "aws_s3_bucket" "target-data-bucket" {
-  bucket        = "target-data-bucket-${random_string.suffix.result}"
+  bucket        = "target-data-bucket-6i2caq"
   force_destroy = true
 }
 
 # S3 Bucket for saving code
 resource "aws_s3_bucket" "code-bucket" {
-  bucket        = "code-bucket-${random_string.suffix.result}"
+  bucket        = "code-bucket-6i2caq"
   force_destroy = true
 }
 
