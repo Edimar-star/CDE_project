@@ -13,11 +13,17 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Set execute permissions on run.sh
-      run: chmod +x lambda/run.sh
+    - name: Set execute permissions on package_lambda.sh
+      run: chmod +x lambda/package_lambda.sh
 
     - name: Run Lambda Packaging Script
-      run: ./lambda/run.sh
+      run: ./lambda/package_lambda.sh
+
+    - name: Set execute permissions on package_layer.sh
+      run: chmod +x lambda/package_layer.sh
+
+    - name: Run Lambda Layer Packaging Script
+      run: ./lambda/package_layer.sh
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
@@ -29,7 +35,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Terraform Init
       run: terraform init

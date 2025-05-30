@@ -40,3 +40,5 @@ terraform.rc
 .aws/*
 tests/
 .terraform.lock.hcl
+lambda_function.zip
+requirements.txt
