@@ -16,6 +16,15 @@ resource "aws_s3_bucket" "code-bucket" {
   force_destroy = true
 }
 
+# s3 bucket for athnena results
+resource "aws_s3_bucket" "athena_results" {
+  bucket        = "athena-results-bucket-6i2caq"
+  force_destroy = true
+  tags = {
+    Name = "AthenaResults"
+  }
+}
+
 # Glue scripts
 resource "aws_s3_object" "scripts" {
   for_each     = var.glue_scripts

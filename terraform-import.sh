@@ -4,11 +4,6 @@ set -e
 
 region="eu-central-1"
 account_id=$(aws sts get-caller-identity --query Account --output text)
-security_group=$(aws ec2 describe-security-groups \
-  --region "$region" \
-  --filters Name=group-name,Values=redshift_sg \
-  --query "SecurityGroups[0].GroupId" \
-  --output text 2>/dev/null)
 LATEST_ARN=$(aws lambda list-layer-versions --layer-name etl_layer \
   --region "$region" \
   --query 'LayerVersions[0].LayerVersionArn' \
@@ -19,6 +14,7 @@ imports=(
   "aws_s3_bucket.source-data-bucket source-data-bucket-6i2caq"
   "aws_s3_bucket.target-data-bucket target-data-bucket-6i2caq"
   "aws_s3_bucket.code-bucket code-bucket-6i2caq"
+  "aws_s3_bucket.code-bucket athena-results-bucket-6i2caq"
   
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
@@ -33,12 +29,9 @@ imports=(
   "aws_lambda_layer_version.etl_layer ${LATEST_ARN}"
   "aws_lambda_function.etl_lambda etl_lambda"
   
-  # Redshift
-  "aws_iam_role.redshift_s3_role RedshiftS3AccessRole"
-  "aws_iam_role_policy_attachment.s3_access RedshiftS3AccessRole/AmazonS3ReadOnlyAccess"
-  "aws_redshift_subnet_group.subnet_group redshift-subnet-group"
-  "aws_security_group.redshift_sg ${security_group}" 
-  "aws_redshift_cluster.main redshift-cluster"
+  # athena
+  aws_glue_catalog_database.athena_db forest_fire_data
+  aws_glue_catalog_table.athena_table forest_fire_data/fires
   
   # Step functions
   "aws_iam_role.step_function_role step-function-role"
