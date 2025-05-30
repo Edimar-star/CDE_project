@@ -33,3 +33,11 @@ resource "aws_s3_object" "lambda_zip" {
   source = "${path.module}/lambda/lambda_function.zip"
   etag   = filemd5("${path.module}/lambda/lambda_function.zip")
 }
+
+# lambda layer
+resource "aws_s3_object" "lambda_layer" {
+  bucket = aws_s3_bucket.code-bucket.id
+  key    = "lambda/lambda_layer.zip"
+  source = "${path.module}/lambda/lambda_layer.zip"
+  etag   = filemd5("${path.module}/lambda/lambda_layer.zip")
+}

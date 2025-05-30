@@ -18,7 +18,7 @@ resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
   role              = aws_iam_role.lambda_exec_role.arn
   handler           = "lambda_function.lambda_handler"
-  runtime           = "python3.9"
+  runtime           = "python3.11"
   s3_bucket         = aws_s3_bucket.code-bucket.id
   s3_key            = aws_s3_object.lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
@@ -26,7 +26,8 @@ resource "aws_lambda_function" "etl_lambda" {
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
-  filename          = "${path.module}/lambda/lambda_layer.zip"
-  layer_name        = "etl_layer"
-  compatible_runtimes = ["python3.9"]
+  s3_bucket           = aws_s3_bucket.code-bucket.id
+  s3_key              = aws_s3_object.lambda_layer.key
+  layer_name          = "etl_layer"
+  compatible_runtimes = ["python3.11"]
 }
