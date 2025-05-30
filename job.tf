@@ -3,7 +3,7 @@ resource "aws_glue_job" "glue_job" {
     role_arn            = aws_iam_role.glue_service_role.arn
     description         = "Transform all tables and one table"
     glue_version        = "4.0"
-    worker_type         = "Standard"
+    worker_type         = "G.1X"
     timeout             = 2880
     max_retries         = 1
     number_of_workers   = 1

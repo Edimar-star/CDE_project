@@ -3,6 +3,10 @@
 set -e
 
 account_id=$(aws sts get-caller-identity --query Account --output text)
+security_group=$(aws ec2 describe-security-groups \
+  --filters Name=group-name,Values=redshift_sg \
+  --query "SecurityGroups[0].GroupId" --output text)
+
 imports=(
   "aws_s3_bucket.source-data-bucket source-data-bucket-6i2caq"
   "aws_s3_bucket.target-data-bucket target-data-bucket-6i2caq"
@@ -18,11 +22,11 @@ imports=(
   "aws_iam_role.redshift_s3_role RedshiftS3AccessRole"
   "aws_iam_role_policy_attachment.s3_access RedshiftS3AccessRole/AmazonS3ReadOnlyAccess"
   "aws_redshift_subnet_group.subnet_group redshift-subnet-group"
-  # "aws_security_group.redshift_sg <security_group_id>" 
+  "aws_security_group.redshift_sg ${security_group}" 
   "aws_redshift_cluster.main redshift-cluster"
   "aws_iam_role.step_function_role step-function-role"
   "aws_iam_role_policy.step_function_policy step-function-role:step-function-policy"
-  "aws_sfn_state_machine.etl_workflow ETLWorkflow"
+  "aws_sfn_state_machine.etl_workflow arn:aws:states:eu-central-1:${account_id}:stateMachine:ETLWorkflow"
 )
 
 echo "Validando importaciones Terraform..."
