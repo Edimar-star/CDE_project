@@ -9,6 +9,11 @@ security_group=$(aws ec2 describe-security-groups \
   --filters Name=group-name,Values=redshift_sg \
   --query "SecurityGroups[0].GroupId" \
   --output text 2>/dev/null)
+LATEST_ARN=$(aws lambda list-layer-versions --layer-name etl_layer \
+  --region "$region" \
+  --query 'LayerVersions[0].LayerVersionArn' \
+  --output text)
+
 imports=(
   # Buckets
   "aws_s3_bucket.source-data-bucket source-data-bucket-6i2caq"
@@ -25,7 +30,7 @@ imports=(
 
   # Lambda
   "aws_iam_role.lambda_exec_role lambda_exec_role"
-  "aws_lambda_layer_version.etl_layer arn:aws:lambda:${region}:${account_id}:layer:etl_layer:1"
+  "aws_lambda_layer_version.etl_layer ${LATEST_ARN}"
   "aws_lambda_function.etl_lambda etl_lambda"
   
   # Redshift
