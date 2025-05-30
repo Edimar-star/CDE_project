@@ -71,6 +71,7 @@ resource "aws_redshift_cluster" "main" {
   iam_roles                 = [aws_iam_role.redshift_s3_role.arn]
   cluster_subnet_group_name = aws_redshift_subnet_group.subnet_group.name
   vpc_security_group_ids    = [aws_security_group.redshift_sg.id]
+  depends_on                = [aws_iam_role_policy_attachment.s3_access]
 }
 
 # Outputs
