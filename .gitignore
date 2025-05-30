@@ -39,3 +39,4 @@ terraform.rc
 # Ignore aws credentials
 .aws/*
 tests/
+.terraform.lock.hcl

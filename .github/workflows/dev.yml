@@ -34,6 +34,12 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
+    - name: Set execute permissions on terraform-import.sh
+      run: chmod +x ./terraform-import.sh
+
+    - name: Terraform Import Resources
+      run: ./terraform-import.sh
+
     - name: Terraform Plan
       run: terraform plan
 
