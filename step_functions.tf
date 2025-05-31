@@ -25,7 +25,9 @@ resource "aws_iam_role_policy" "step_function_policy" {
         Action: [
           "lambda:InvokeFunction",
           "glue:StartCrawler",
-          "glue:StartJobRun"
+          "glue:StartJobRun",
+          "sagemaker:CreateTrainingJob",
+          "sagemaker:DescribeTrainingJob"
         ],
         Resource: "*"
       }
@@ -61,6 +63,49 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Resource: "arn:aws:states:::glue:startJobRun.sync",
         Parameters: {
           JobName: "glue-job"
+        },
+        Next: "TrainSageMakerModel"
+      },
+      TrainSageMakerModel: {
+        Type: "Task",
+        Resource: "arn:aws:states:::sagemaker:createTrainingJob.sync",
+        Parameters: {
+          TrainingJobName: "modelo-sklearn-${uuid()}",
+
+          AlgorithmSpecification: {
+            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3",
+            TrainingInputMode: "File"
+          },
+
+          RoleArn: "arn:aws:iam::${var.account_id}:role/sagemaker-execution-role",
+
+          InputDataConfig: [
+            {
+              ChannelName: "train",
+              DataSource: {
+                S3DataSource: {
+                  S3DataType: "S3Prefix",
+                  S3Uri: "s3://${aws_s3_bucket.target-data-bucket.id}/training/",
+                  S3DataDistributionType: "FullyReplicated"
+                }
+              },
+              ContentType: "text/csv"
+            }
+          ],
+
+          OutputDataConfig: {
+            S3OutputPath: "s3://${aws_s3_bucket.target-data-bucket.id}/output/"
+          },
+
+          ResourceConfig: {
+            InstanceType: "ml.m5.large",
+            InstanceCount: 1,
+            VolumeSizeInGB: 10
+          },
+
+          StoppingCondition: {
+            MaxRuntimeInSeconds: 600
+          }
         },
         End: true
       }

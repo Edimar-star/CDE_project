@@ -20,7 +20,7 @@ resource "aws_sagemaker_training_job" "sklearn_training" {
   }
 
   output_data_config {
-    s3_output_path = "s3://${aws_s3_bucket.target-data-bucket.id}/model/"
+    s3_output_path = "s3://${aws_s3_bucket.target-data-bucket.id}/output/"
   }
 
   resource_config {
