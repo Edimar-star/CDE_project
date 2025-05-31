@@ -25,6 +25,14 @@ resource "aws_s3_bucket" "athena_results" {
   }
 }
 
+# script for training model
+resource "aws_s3_object" "sagemaker_training_script" {
+  bucket = aws_s3_bucket.code-bucket.id
+  key    = "sagemaker/train.py"
+  source = "${path.module}/sagemaker/train.py"
+  etag   = filemd5("${path.module}/sagemaker/train.py")
+}
+
 # Glue scripts
 resource "aws_s3_object" "scripts" {
   for_each     = var.glue_scripts

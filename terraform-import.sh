@@ -15,6 +15,11 @@ imports=(
   "aws_s3_bucket.target-data-bucket target-data-bucket-6i2caq"
   "aws_s3_bucket.code-bucket code-bucket-6i2caq"
   "aws_s3_bucket.code-bucket athena-results-bucket-6i2caq"
+
+  # Lambda ETL
+  "aws_iam_role.lambda_exec_role lambda_exec_role"
+  "aws_lambda_layer_version.etl_layer ${LATEST_ARN}"
+  "aws_lambda_function.etl_lambda etl_lambda"
   
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
@@ -23,11 +28,6 @@ imports=(
   "aws_glue_crawler.org_report_crawler org-report-crawler"
   "aws_glue_trigger.org_report_trigger org-report-trigger"
   "aws_glue_job.glue_job glue-job"
-
-  # Lambda
-  "aws_iam_role.lambda_exec_role lambda_exec_role"
-  "aws_lambda_layer_version.etl_layer ${LATEST_ARN}"
-  "aws_lambda_function.etl_lambda etl_lambda"
   
   # athena
   aws_glue_catalog_database.athena_db forest_fire_data
@@ -37,6 +37,12 @@ imports=(
   "aws_iam_role.step_function_role step-function-role"
   "aws_iam_role_policy.step_function_policy step-function-role:step-function-policy"
   "aws_sfn_state_machine.etl_workflow arn:aws:states:${region}:${account_id}:stateMachine:ETLWorkflow"
+
+  # Sagemark
+
+  # Lambda API
+
+  # API Gateway
 )
 
 echo "Validando importaciones Terraform..."

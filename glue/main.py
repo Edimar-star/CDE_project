@@ -150,6 +150,9 @@ for old_name, new_name in columns.items():
 # Seleccion de columnas
 result = result.select(*columns.values())
 
+# ----------------------------- SAVING DATA --------------------------------
+result.write.mode('overwrite').parquet(f's3://target-data-bucket-6i2caq/processed/')
+result.write.mode('overwrite').option("header", True).csv(f's3://target-data-bucket-6i2caq/training/')
+
 # -------------------------------- FINISH JOB --------------------------------
-result.write.mode('overwrite').parquet(f's3://target-data-bucket/forest_fire_COLOMBIA/')
 job.commit()

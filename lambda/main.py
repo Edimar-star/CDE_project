@@ -143,7 +143,7 @@ def lambda_handler(event, context):
 
     # Definicion del bucket de s3
     s3          = boto3.client('s3')
-    bucket_name = 'source-data-bucket'
+    bucket_name = 'source-data-bucket-6i2caq'
 
     # ------------------------------ FOREST FIRE ------------------------------
     df_ff = None
