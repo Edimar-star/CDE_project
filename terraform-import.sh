@@ -31,7 +31,7 @@ imports=(
   
   # athena
   "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
-  "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data/fires"
+  "aws_glue_catalog_table.athena_table forest_fire_data/fires"
   
   # Step functions
   "aws_iam_role.step_function_role step-function-role"

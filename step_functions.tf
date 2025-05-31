@@ -22,7 +22,7 @@ resource "aws_iam_role_policy" "step_function_policy" {
     Statement: [
       {
         Effect: "Allow",
-        Action = [
+        Action: [
           "lambda:InvokeFunction",
           "glue:StartCrawler",
           "glue:StartJobRun",
@@ -51,7 +51,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Type: "Task",
         Resource: "arn:aws:states:::lambda:invoke",
         Parameters: {
-          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
+          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda"
         },
         Next: "RunCrawler"
       },
