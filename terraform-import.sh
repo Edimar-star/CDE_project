@@ -31,7 +31,7 @@ imports=(
   
   # athena
   "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
-  "aws_glue_catalog_table.athena_table forest_fire_data/fires"
+  "aws_glue_catalog_table.athena_table ${account_id}:forest_fire_data:fires"
   
   # Step functions
   "aws_iam_role.step_function_role step-function-role"
@@ -41,7 +41,6 @@ imports=(
   # Sagemark
   "aws_iam_role.sagemaker_execution_role sagemaker-execution-role"
   "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
-  "aws_sagemaker_model.sklearn_model fires-sklearn-model"
 
   # Lambda API
 
