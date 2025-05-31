@@ -64,48 +64,40 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Parameters: {
           JobName: "glue-job"
         },
-        Next: "TrainSageMakerModel"
+        Next: "TrainModel"
       },
-      TrainSageMakerModel: {
+      TrainModel: {
         Type: "Task",
         Resource: "arn:aws:states:::sagemaker:createTrainingJob.sync",
         Parameters: {
-          TrainingJobName: "modelo-sklearn-${uuid()}",
-
+          TrainingJobName: "fires-sklearn-training-${!UUID}",
           AlgorithmSpecification: {
-            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3",
-            TrainingInputMode: "File"
+            TrainingInputMode: "File",
+            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
           },
-
-          RoleArn: "arn:aws:iam::${var.account_id}:role/sagemaker-execution-role",
-
-          InputDataConfig: [
-            {
-              ChannelName: "train",
-              DataSource: {
-                S3DataSource: {
-                  S3DataType: "S3Prefix",
-                  S3Uri: "s3://${aws_s3_bucket.target-data-bucket.id}/training/",
-                  S3DataDistributionType: "FullyReplicated"
-                }
-              },
-              ContentType: "text/csv"
-            }
-          ],
-
+          InputDataConfig: [{
+            ChannelName: "train",
+            DataSource: {
+              S3DataSource: {
+                S3DataType: "S3Prefix",
+                S3Uri: "s3://${aws_s3_bucket.target-data-bucket.id}/training",
+                S3DataDistributionType: "FullyReplicated"
+              }
+            },
+            ContentType: "text/csv"
+          }],
           OutputDataConfig: {
             S3OutputPath: "s3://${aws_s3_bucket.target-data-bucket.id}/output/"
           },
-
           ResourceConfig: {
             InstanceType: "ml.m5.large",
             InstanceCount: 1,
             VolumeSizeInGB: 10
           },
-
           StoppingCondition: {
-            MaxRuntimeInSeconds: 600
-          }
+            MaxRuntimeInSeconds: 900
+          },
+          RoleArn: "${aws_iam_role.sagemaker_execution_role.arn}"
         },
         End: true
       }
