@@ -22,12 +22,16 @@ resource "aws_iam_role_policy" "step_function_policy" {
     Statement: [
       {
         Effect: "Allow",
-        Action: [
+        Action = [
           "lambda:InvokeFunction",
           "glue:StartCrawler",
           "glue:StartJobRun",
           "sagemaker:CreateTrainingJob",
-          "sagemaker:DescribeTrainingJob"
+          "sagemaker:DescribeTrainingJob",
+          "events:PutRule",
+          "events:PutTargets",
+          "events:DescribeRule",
+          "iam:PassRole"
         ],
         Resource: "*"
       }
@@ -73,7 +77,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
           TrainingJobName: "fires-sklearn-training-$$!UUID",
           AlgorithmSpecification: {
             TrainingInputMode: "File",
-            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
+            TrainingImage: "683313688378.dkr.ecr.us-west-2.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
           },
           InputDataConfig: [{
             ChannelName: "train",
