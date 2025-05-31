@@ -7,15 +7,12 @@ import numpy as np
 import tarfile
 import joblib
 import boto3
+import glob
 
-# Parámetros
-bucket_name = "target-data-bucket-6i2caq"
-key = "processed/dataset.csv"
-s3 = boto3.client("s3")
-
-# 1. Leer dataset desde S3
-response = s3.get_object(Bucket=bucket_name, Key=key)
-df = pd.read_csv(StringIO(response['Body'].read().decode('utf-8')))
+# 1. Concatenar todos los archivos en un solo DataFrame
+data_dir = '/opt/ml/input/data/train'
+all_files = glob.glob(os.path.join(data_dir, 'part-*.csv'))
+df = pd.concat((pd.read_csv(f) for f in all_files))
 
 # 2. Separar features y target
 target = "confidence"
@@ -63,8 +60,10 @@ for k in metrics:
 best_n = max(metrics["accuracy_test"], key=metrics["accuracy_test"].get)
 
 # 8. Entrenar modelo final con el mejor `n`
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 final_model = RandomForestClassifier(n_estimators=best_n, max_depth=5, class_weight="balanced", random_state=42)
-final_model.fit(X, y)
+final_model.fit(X_train, y_train)
+score = model.score(X_test, y_test)
 
 # 9. Guardar modelo como .joblib
 joblib.dump(final_model, "model.joblib")
@@ -74,4 +73,4 @@ with tarfile.open("model.tar.gz", "w:gz") as tar:
     tar.add("model.joblib")
 
 s3.upload_file("model.tar.gz", bucket_name, "model/model.tar.gz")
-print(f"Modelo entrenado con n={best_n} y subido a S3.")
+print(f"Modelo entrenado con n={best_n} y score={score} subido a S3.")
