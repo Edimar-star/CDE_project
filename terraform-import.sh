@@ -30,7 +30,7 @@ imports=(
   "aws_glue_job.glue_job glue-job"
   
   # athena
-  "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
+  #"aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
   "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data/fires"
   
   # Step functions

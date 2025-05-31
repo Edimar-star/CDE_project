@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import tarfile
 import joblib
-import boto3
 import glob
 
 # 1. Concatenar todos los archivos en un solo DataFrame
