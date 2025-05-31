@@ -70,7 +70,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Type: "Task",
         Resource: "arn:aws:states:::sagemaker:createTrainingJob.sync",
         Parameters: {
-          TrainingJobName: "fires-sklearn-training-${!UUID}",
+          TrainingJobName: "fires-sklearn-training-$$!UUID",
           AlgorithmSpecification: {
             TrainingInputMode: "File",
             TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
