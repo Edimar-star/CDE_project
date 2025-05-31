@@ -17,4 +17,8 @@ resource "aws_glue_catalog_table" "athena_table" {
       serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

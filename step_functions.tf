@@ -78,7 +78,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
           TrainingJobName: "fires-sklearn-training-$$!UUID",
           AlgorithmSpecification: {
             TrainingInputMode: "File",
-            TrainingImage: "811284229777.dkr.ecr.us-west-2.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
+            TrainingImage: "683313688378.dkr.ecr.eu-central-1.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
           },
           InputDataConfig: [{
             ChannelName: "train",
