@@ -30,7 +30,7 @@ imports=(
   "aws_glue_job.glue_job glue-job"
   
   # athena
-  aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data
+  "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
   
   # Step functions
   "aws_iam_role.step_function_role step-function-role"
@@ -39,10 +39,8 @@ imports=(
 
   # Sagemark
   "aws_iam_role.sagemaker_execution_role sagemaker-execution-role"
-  "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role:sagemaker_policy"
+  "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
   "aws_sagemaker_model.sklearn_model fires-sklearn-model"
-  "aws_sagemaker_endpoint_configuration.sklearn_endpoint_config fires-sklearn-endpoint-config"
-  "aws_sagemaker_endpoint.sklearn_endpoint fires-sklearn-endpoint"
 
   # Lambda API
 

@@ -30,21 +30,3 @@ resource "aws_sagemaker_model" "sklearn_model" {
     model_data_url      = "s3://${aws_s3_bucket.target-data-bucket.id}/model/model.tar.gz"
   }
 }
-
-# Enpoint configuration
-resource "aws_sagemaker_endpoint_configuration" "sklearn_endpoint_config" {
-  name = "fires-sklearn-endpoint-config"
-
-  production_variants {
-    variant_name           = "AllTrafficVariant"
-    model_name             = aws_sagemaker_model.sklearn_model.name
-    initial_instance_count = 1
-    instance_type          = "ml.m5.large"
-  }
-}
-
-# Endpoint
-resource "aws_sagemaker_endpoint" "sklearn_endpoint" {
-  name = "fires-sklearn-endpoint"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.sklearn_endpoint_config.name
-}
