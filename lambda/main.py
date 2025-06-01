@@ -167,10 +167,6 @@ def lambda_handler(event, context):
             }), on="fire_type", how="left").drop(columns=["fire_type"]
         )
 
-        # eliminamos los datos
-        del df_ff
-        gc.collect()
-
         # guardamos los datos
         csv_buffer = dataframe_a_csv_buffer(df_ff)
         s3.put_object(
@@ -178,6 +174,10 @@ def lambda_handler(event, context):
             Key='raw/forest_fire.csv',
             Body=csv_buffer.getvalue()
         )
+
+        # eliminamos los datos
+        del df_ff
+        gc.collect()
 
     # ------------------------------ NDVI ------------------------------
     if dataset_name == "ndvi":
