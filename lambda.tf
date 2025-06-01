@@ -23,6 +23,9 @@ resource "aws_lambda_function" "etl_lambda" {
   s3_key            = aws_s3_object.lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
   layers = [aws_lambda_layer_version.etl_layer.arn]
+
+  timeout     = 300       # 5 minutos
+  memory_size = 1024      # 1 GB
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
