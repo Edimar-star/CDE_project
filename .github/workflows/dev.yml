@@ -13,6 +13,11 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
     - name: Set execute permissions on package_lambda.sh
       run: chmod +x lambda/package_lambda.sh
 

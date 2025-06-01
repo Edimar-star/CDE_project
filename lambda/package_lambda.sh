@@ -48,7 +48,7 @@ fi
 
 # Instalar dependencias
 echo "⬇️ Instalando dependencias desde $REQUIREMENTS..."
-pip install -t "$LAYER_DIR/python/lib/python3.9/site-packages" -r "$REQUIREMENTS" --no-cache-dir >/dev/null
+pip3 install -t "$LAYER_DIR/python" -r "$REQUIREMENTS" --no-cache-dir >/dev/null
 
 # Limpiar archivos innecesarios
 echo "🧽 Limpiando archivos innecesarios..."
