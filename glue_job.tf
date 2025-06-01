@@ -25,5 +25,5 @@ resource "aws_glue_job" "glue_job" {
 }
 
 output "glue_crawler_name" {
-  value = "s3://${aws_s3_bucket.source-data-bucket.id}/"
+  value = "s3://${aws_s3_bucket.source-data-bucket.id}/crawler/"
 }
