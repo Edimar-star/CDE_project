@@ -1,0 +1,6 @@
+numpy
+pandas
+scipy
+netCDF4
+requests
+sodapy

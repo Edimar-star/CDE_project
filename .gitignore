@@ -41,4 +41,3 @@ terraform.rc
 tests/
 .terraform.lock.hcl
 *.zip
-requirements.txt

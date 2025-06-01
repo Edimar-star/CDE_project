@@ -29,33 +29,29 @@ echo "✅ Lambda empaquetada: $ZIP_NAME"
 # Variables
 LAYER_DIR="layer"
 ZIP_NAME="lambda_layer.zip"
-PACKAGE="sodapy"
+REQUIREMENTS="requirements.txt"
 
-echo "📦 Empaquetando Lambda Layer para '${PACKAGE}'..."
+echo "📦 Empaquetando Lambda Layer personalizada..."
 
-# Limpieza previa
+# Limpieza
 rm -rf "$LAYER_DIR" "$ZIP_NAME"
 
-# Crear estructura esperada por AWS
+# Crear estructura
 mkdir -p "$LAYER_DIR/python"
 
-# Instalar la librería en el directorio adecuado
-echo "⬇️  Instalando ${PACKAGE} en ${LAYER_DIR}/python..."
-pip install "${PACKAGE}" -t "${LAYER_DIR}/python" >/dev/null
+# Instalar todas las dependencias
+pip install -r "$REQUIREMENTS" -t "$LAYER_DIR/python" >/dev/null
 
-# Limpieza de archivos innecesarios
-echo "🧹 Limpiando archivos no necesarios..."
+# Limpiar archivos innecesarios
 find "$LAYER_DIR" -type d -name "__pycache__" -exec rm -rf {} +
 find "$LAYER_DIR" -type d -name "tests" -exec rm -rf {} +
 find "$LAYER_DIR" -name "*.pyc" -delete
 
-# Empaquetar en .zip
-echo "📦 Creando archivo ZIP: $ZIP_NAME..."
+# Empaquetar
 cd "$LAYER_DIR"
 zip -r9 "../$ZIP_NAME" . >/dev/null
 cd ..
 
-# Limpiar carpeta temporal
 rm -rf "$LAYER_DIR"
 
-echo "✅ Layer generado: $ZIP_NAME"
+echo "✅ Layer lista: $ZIP_NAME"
