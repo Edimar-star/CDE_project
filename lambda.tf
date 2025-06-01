@@ -36,6 +36,26 @@ resource "aws_iam_role_policy" "lambda_layer_access" {
   })
 }
 
+resource "aws_iam_role_policy" "lambda_update_permission" {
+  name = "AllowLambdaUpdateFunction"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "AllowLambdaUpdateFunction",
+        Effect = "Allow",
+        Action = [
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:UpdateFunctionCode"
+        ],
+        Resource = "arn:aws:lambda:eu-central-1:*:*:function:etl_lambda"
+      }
+    ]
+  })
+}
+
 # Lambda creation
 resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
