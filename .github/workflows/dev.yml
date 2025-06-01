@@ -19,12 +19,6 @@ jobs:
     - name: Run Lambda Packaging Script
       run: ./lambda/package_lambda.sh
 
-    - name: Set execute permissions on package_layer.sh
-      run: chmod +x lambda/package_layer.sh
-
-    - name: Run Lambda Layer Packaging Script
-      run: ./lambda/package_layer.sh
-
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:

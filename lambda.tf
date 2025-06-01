@@ -18,16 +18,23 @@ resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
   role              = aws_iam_role.lambda_exec_role.arn
   handler           = "lambda_function.lambda_handler"
-  runtime           = "python3.11"
+  runtime           = "python3.9"
   s3_bucket         = aws_s3_bucket.code-bucket.id
   s3_key            = aws_s3_object.lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
-  layers            = [aws_lambda_layer_version.etl_layer.arn]
+  layers = [
+    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-numpy:5",
+    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-pandas:9",
+    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-scipy:4",
+    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-netCDF4:1",
+    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-requests:4",
+    aws_lambda_layer_version.sodapy_layer.arn
+  ]
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
   s3_bucket           = aws_s3_bucket.code-bucket.id
   s3_key              = aws_s3_object.lambda_layer.key
   layer_name          = "etl_layer"
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.9"]
 }

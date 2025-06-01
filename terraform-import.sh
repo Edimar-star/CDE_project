@@ -4,10 +4,6 @@ set -e
 
 region="eu-central-1"
 account_id=$(aws sts get-caller-identity --query Account --output text)
-LATEST_ARN=$(aws lambda list-layer-versions --layer-name etl_layer \
-  --region "$region" \
-  --query 'LayerVersions[0].LayerVersionArn' \
-  --output text)
 
 imports=(
   # Buckets
@@ -18,7 +14,6 @@ imports=(
 
   # Lambda ETL
   "aws_iam_role.lambda_exec_role lambda_exec_role"
-  "aws_lambda_layer_version.etl_layer ${LATEST_ARN}"
   "aws_lambda_function.etl_lambda etl_lambda"
   
   # Glue
