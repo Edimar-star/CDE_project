@@ -171,7 +171,7 @@ def lambda_handler(event, context):
         csv_buffer = dataframe_a_csv_buffer(df_ff)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/forest_fire.csv',
+            Key='raw/forest_fire/forest_fire.csv',
             Body=csv_buffer.getvalue()
         )
 
@@ -189,7 +189,7 @@ def lambda_handler(event, context):
         csv_buffer          = dataframe_a_csv_buffer(df_ndvi)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/ndvi.csv',
+            Key='raw/ndvi/ndvi.csv',
             Body=csv_buffer.getvalue()
         )
 
@@ -210,7 +210,7 @@ def lambda_handler(event, context):
         csv_buffer          = dataframe_a_csv_buffer(df_divipolas)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/divipolas.csv',
+            Key='raw/divipolas/divipolas.csv',
             Body=csv_buffer.getvalue()
         )
 
@@ -220,7 +220,7 @@ def lambda_handler(event, context):
 
     # ------------------------------ GLOBAL CLIMATE ------------------------------
     if dataset_name == "global_climate":
-        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire.csv")
+        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire/forest_fire.csv")
         csv_content = response['Body'].read()
 
         df_ff = pd.read_csv(io.BytesIO(csv_content))
@@ -243,7 +243,7 @@ def lambda_handler(event, context):
         csv_buffer          = dataframe_a_csv_buffer(df_global_climate)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/global_climate.csv',
+            Key='raw/global_climate/global_climate.csv',
             Body=csv_buffer.getvalue()
         )
 
@@ -253,7 +253,7 @@ def lambda_handler(event, context):
 
     # ------------------------------ POPULATION DENSITY ------------------------------
     if dataset_name == "population_density":
-        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire.csv")
+        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire/forest_fire.csv")
         csv_content = response['Body'].read()
 
         df_ff = pd.read_csv(io.BytesIO(csv_content))
@@ -337,7 +337,7 @@ def lambda_handler(event, context):
         csv_buffer = dataframe_a_csv_buffer(df_pd_result)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/population_density.csv',
+            Key='raw/population_density/population_density.csv',
             Body=csv_buffer.getvalue()
         )
 
