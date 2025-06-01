@@ -38,3 +38,24 @@ resource "aws_lambda_layer_version" "etl_layer" {
   compatible_runtimes = ["python3.9"]
 }
 
+# layer iam
+resource "aws_iam_policy" "allow_get_layer_version_klayers" {
+  name        = "AllowGetLayerVersionFromKlayers"
+  description = "Permite lambda:GetLayerVersion en layers de Klayers"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = "lambda:GetLayerVersion",
+        Resource = "arn:aws:lambda:eu-central-1:770693421928:layer:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "attach_get_layer_permission" {
+  user       = "DEP_user"
+  policy_arn = aws_iam_policy.allow_get_layer_version_klayers.arn
+}

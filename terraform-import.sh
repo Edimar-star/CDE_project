@@ -15,6 +15,9 @@ imports=(
   # Lambda ETL
   "aws_iam_role.lambda_exec_role lambda_exec_role"
   "aws_lambda_function.etl_lambda etl_lambda"
+
+  # lambda Layer
+  "aws_iam_policy.allow_get_layer_version_klayers AllowGetLayerVersionFromKlayers"
   
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
