@@ -24,8 +24,9 @@ resource "aws_lambda_function" "etl_lambda" {
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
   layers = [aws_lambda_layer_version.etl_layer.arn]
 
-  timeout     = 300       # 5 minutos
-  memory_size = 3072      # 3 GB
+  architectures = ["arm64"]
+  memory_size   = 4096
+  timeout       = 300 
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
