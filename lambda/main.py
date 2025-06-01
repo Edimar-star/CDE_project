@@ -334,7 +334,7 @@ def lambda_handler(event, context):
             gc.collect()
 
         # guardamos los datos
-        csv_buffer = dataframe_a_csv_buffer(df_global_climate)
+        csv_buffer = dataframe_a_csv_buffer(df_pd_result)
         s3.put_object(
             Bucket=bucket_name,
             Key='raw/population_density.csv',
