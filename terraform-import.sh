@@ -14,6 +14,7 @@ imports=(
 
   # Lambda ETL
   "aws_iam_role.lambda_exec_role lambda_exec_role"
+  "aws_iam_role_policy.lambda_s3_write_access lambda_exec_role:lambda-s3-putobject"
   "aws_lambda_function.etl_lambda etl_lambda"
 
   # Glue

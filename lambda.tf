@@ -13,6 +13,24 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
+resource "aws_iam_role_policy" "lambda_s3_write_access" {
+  name = "lambda-s3-putobject"
+  role = aws_iam_role.lambda_exec_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:PutObject"
+        ],
+        Resource = "arn:aws:s3:::source-data-bucket-6i2caq/raw/*"
+      }
+    ]
+  })
+}
+
 # Lambda creation
 resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
