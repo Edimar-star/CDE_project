@@ -220,7 +220,7 @@ def lambda_handler(event, context):
 
     # ------------------------------ GLOBAL CLIMATE ------------------------------
     if dataset_name == "global_climate":
-        response = s3.get_object(Bucket=bucket, Key="raw/forest_fire.csv")
+        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire.csv")
         csv_content = response['Body'].read()
 
         df_ff = pd.read_csv(io.BytesIO(csv_content))
@@ -253,7 +253,7 @@ def lambda_handler(event, context):
 
     # ------------------------------ POPULATION DENSITY ------------------------------
     if dataset_name == "population_density":
-        response = s3.get_object(Bucket=bucket, Key="raw/forest_fire.csv")
+        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire.csv")
         csv_content = response['Body'].read()
 
         df_ff = pd.read_csv(io.BytesIO(csv_content))
