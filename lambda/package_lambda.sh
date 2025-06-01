@@ -33,25 +33,37 @@ REQUIREMENTS="requirements.txt"
 
 echo "📦 Empaquetando Lambda Layer personalizada..."
 
-# Limpieza
+# Limpieza previa
+echo "🧹 Limpiando archivos anteriores..."
 rm -rf "$LAYER_DIR" "$ZIP_NAME"
 
-# Crear estructura
+# Crear estructura esperada por Lambda
 mkdir -p "$LAYER_DIR/python"
 
-# Instalar todas las dependencias
-pip install -r "$REQUIREMENTS" -t "$LAYER_DIR/python" >/dev/null
+# Verificación de requirements
+if [ ! -f "$REQUIREMENTS" ]; then
+  echo "❌ No se encontró $REQUIREMENTS"
+  exit 1
+fi
+
+# Instalar dependencias
+echo "⬇️ Instalando dependencias desde $REQUIREMENTS..."
+pip install -r "$REQUIREMENTS" -t "$LAYER_DIR/python" --no-cache-dir >/dev/null
 
 # Limpiar archivos innecesarios
+echo "🧽 Limpiando archivos innecesarios..."
 find "$LAYER_DIR" -type d -name "__pycache__" -exec rm -rf {} +
 find "$LAYER_DIR" -type d -name "tests" -exec rm -rf {} +
 find "$LAYER_DIR" -name "*.pyc" -delete
+find "$LAYER_DIR" -name "*.dist-info" -exec rm -rf {} +
 
 # Empaquetar
+echo "📦 Creando archivo ZIP..."
 cd "$LAYER_DIR"
 zip -r9 "../$ZIP_NAME" . >/dev/null
 cd ..
 
+# Limpieza opcional
 rm -rf "$LAYER_DIR"
 
-echo "✅ Layer lista: $ZIP_NAME"
+echo "✅ Layer empaquetado correctamente: $ZIP_NAME"

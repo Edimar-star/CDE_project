@@ -31,3 +31,4 @@ resource "aws_lambda_layer_version" "etl_layer" {
   layer_name          = "etl_layer"
   compatible_runtimes = ["python3.9"]
 }
+
