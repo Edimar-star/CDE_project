@@ -13,49 +13,6 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
-# Layer permissions
-resource "aws_iam_role_policy" "lambda_layer_access" {
-  name = "AllowLambdaGetLayerVersion"
-  role = aws_iam_role.lambda_exec_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "AllowAccessToPublicLambdaLayers",
-        Effect = "Allow",
-        Action = "lambda:GetLayerVersion",
-        Resource = [
-          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-numpy:*",
-          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-pandas:*",
-          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-scipy:*",
-          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-netCDF4:*"
-        ]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "lambda_update_permission" {
-  name = "AllowLambdaUpdateFunction"
-  role = aws_iam_role.lambda_exec_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "AllowLambdaUpdateFunction",
-        Effect = "Allow",
-        Action = [
-          "lambda:UpdateFunctionConfiguration",
-          "lambda:UpdateFunctionCode"
-        ],
-        Resource = "arn:aws:lambda:eu-central-1:*:*:function:etl_lambda"
-      }
-    ]
-  })
-}
-
 # Lambda creation
 resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
@@ -65,13 +22,7 @@ resource "aws_lambda_function" "etl_lambda" {
   s3_bucket         = aws_s3_bucket.code-bucket.id
   s3_key            = aws_s3_object.lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
-  layers = [
-    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-numpy:5",
-    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-pandas:9",
-    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-scipy:4",
-    "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-netCDF4:1",
-    aws_lambda_layer_version.etl_layer.arn
-  ]
+  layers = [aws_lambda_layer_version.etl_layer.arn]
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {

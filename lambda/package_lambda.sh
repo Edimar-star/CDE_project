@@ -48,7 +48,7 @@ fi
 
 # Instalar dependencias
 echo "⬇️ Instalando dependencias desde $REQUIREMENTS..."
-pip install -r "$REQUIREMENTS" -t "$LAYER_DIR/python" --no-cache-dir >/dev/null
+pip install --target "$LAYER_DIR/python" -r "$REQUIREMENTS" --no-cache-dir >/dev/null
 
 # Limpiar archivos innecesarios
 echo "🧽 Limpiando archivos innecesarios..."
@@ -60,7 +60,7 @@ find "$LAYER_DIR" -name "*.dist-info" -exec rm -rf {} +
 # Empaquetar
 echo "📦 Creando archivo ZIP..."
 cd "$LAYER_DIR"
-zip -r9 "../$ZIP_NAME" . >/dev/null
+zip -r "../$ZIP_NAME" . >/dev/null
 cd ..
 
 # Limpieza opcional
