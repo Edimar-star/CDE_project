@@ -155,10 +155,6 @@ def lambda_handler(event, context):
         else:
             df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
 
-    for year in range(2012, 2024):
-        url = f"https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/{year}/viirs-snpp_{year}_Colombia.csv"
-        df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
-
     df_ff = pd.merge(
         df_ff.sort_values(by="acq_date")
             .rename(columns={"type": "fire_type", "acq_date": "date"})
