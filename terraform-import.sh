@@ -14,8 +14,6 @@ imports=(
 
   # Lambda ETL
   "aws_iam_role.lambda_exec_role lambda_exec_role"
-  "aws_iam_role_policy.lambda_layer_access lambda_exec_role:AllowLambdaGetLayerVersion"
-  "aws_iam_role_policy.lambda_update_permission lambda_exec_role:AllowLambdaUpdateFunction"
   "aws_lambda_function.etl_lambda etl_lambda"
 
   # Glue
