@@ -140,191 +140,211 @@ def dataframe_a_csv_buffer(df):
 # Lambda function
 def lambda_handler(event, context):
     start_time  = time.time()
+    dataset_name = event.get("dataset_name", "forest_fire")
 
     # Definicion del bucket de s3
     s3          = boto3.client('s3')
     bucket_name = 'source-data-bucket-6i2caq'
 
     # ------------------------------ FOREST FIRE ------------------------------
-    df_ff = None
-    for year in range(2000, 2024):
-        url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
+    if dataset_name == "forest_fire":
+        df_ff = None
+        for year in range(2002, 2021):
+            url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
 
-        if df_ff is None:
-            df_ff = pd.read_csv(url)
-        else:
-            df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
+            if df_ff is None:
+                df_ff = pd.read_csv(url)
+            else:
+                df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
 
-    df_ff = pd.merge(
-        df_ff.sort_values(by="acq_date")
-            .rename(columns={"type": "fire_type", "acq_date": "date"})
-            .dropna(),
-        pd.DataFrame({
-            "fire_type": [0, 1, 2, 3],
-            "type": ["presumed vegetation fire", "active volcano", "other static land source", "offshore"]
-        }), on="fire_type", how="left").drop(columns=["fire_type"]
-    )
+        df_ff = pd.merge(
+            df_ff.sort_values(by="acq_date")
+                .rename(columns={"type": "fire_type", "acq_date": "date"})
+                .dropna(),
+            pd.DataFrame({
+                "fire_type": [0, 1, 2, 3],
+                "type": ["presumed vegetation fire", "active volcano", "other static land source", "offshore"]
+            }), on="fire_type", how="left").drop(columns=["fire_type"]
+        )
 
-    # guardamos los datos
-    csv_buffer = dataframe_a_csv_buffer(df_ff)
-    s3.put_object(
-        Bucket=bucket_name,
-        Key='raw/forest_fire.csv',
-        Body=csv_buffer.getvalue()
-    )
-
-    # ------------------------------ NDVI ------------------------------
-    url                 = "https://data.humdata.org/dataset/7f2ba5ba-8df1-41cf-ab18-fc1da928a1e5/resource/c06298d9-0d4d-4e40-aecc-abc1da75dc4d/download/col-ndvi-adm2-full.csv"
-    df_ndvi             = pd.read_csv(url, low_memory=False)
-    df_ndvi             = df_ndvi.drop(index=0)
-
-    # guardamos los datos
-    csv_buffer          = dataframe_a_csv_buffer(df_ndvi)
-    s3.put_object(
-        Bucket=bucket_name,
-        Key='raw/ndvi.csv',
-        Body=csv_buffer.getvalue()
-    )
-
-    # eliminamos los datos
-    del df_ndvi
-    gc.collect()
-
-    # ------------------------------ DIVIPOLAS --------------------------------
-    client              = Socrata("www.datos.gov.co", None)
-    results             = client.get("gdxc-w37w", limit=2000)
-    df_divipolas        = pd.DataFrame.from_records(results)
-
-    fix_number                      = lambda x: float(str(x).replace(',', '.'))
-    df_divipolas['latitud']         = df_divipolas['latitud'].apply(fix_number)
-    df_divipolas['longitud']        = df_divipolas['longitud'].apply(fix_number)
-    
-    # guardamos los datos
-    csv_buffer          = dataframe_a_csv_buffer(df_divipolas)
-    s3.put_object(
-        Bucket=bucket_name,
-        Key='raw/divipolas.csv',
-        Body=csv_buffer.getvalue()
-    )
-
-    # eliminamos los datos
-    del df_divipolas
-    gc.collect()
-
-    # ------------------------------ GLOBAL CLIMATE ------------------------------
-    df_ff_values            = df_ff[['date', 'latitude', 'longitude']].copy()
-    df_ff_values['date']    = pd.to_datetime(df_ff_values['date'])
-
-    # eliminamos los datos
-    del df_ff
-    gc.collect()
-
-    varnames            = [
-        "ws", "vpd", "vap", "tmin", "tmax", "swe", "srad", 
-        "soil", "q", "ppt", "pet", "def", "aet", "PDSI"
-    ]
-
-    dataset             = get_climate_data_country(df_ff_values.copy(), varnames)
-    df_global_climate   = pd.DataFrame(dataset)
-
-    # guardamos los datos
-    csv_buffer          = dataframe_a_csv_buffer(df_global_climate)
-    s3.put_object(
-        Bucket=bucket_name,
-        Key='raw/global_climate.csv',
-        Body=csv_buffer.getvalue()
-    )
-
-    # eliminamos los datos
-    del df_global_climate
-    gc.collect()
-
-    # ------------------------------ POPULATION DENSITY ------------------------------
-    columns         = ['latitude', 'longitude', 'population_density', 'year']
-    df_pd_result    = pd.DataFrame(columns=columns)
-
-    for year in range(2000, 2021):
-        # URL del ZIP
-        zip_url     = f"https://data.worldpop.org/GIS/Population_Density/Global_2000_2020_1km_UNadj/{year}/COL/col_pd_{year}_1km_UNadj_ASCII_XYZ.zip"
-
-        # Descargar el archivo ZIP
-        response    = requests.get(zip_url)
-        response.raise_for_status()
-
-        # Leer el ZIP en memoria
-        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            # Suponiendo que solo hay un archivo en el ZIP
-            csv_filename = z.namelist()[0]
-            
-            # Leer directamente el CSV dentro del ZIP con pandas
-            with z.open(csv_filename) as f:
-                df_pd = pd.read_csv(f).rename(columns={
-                    'X': 'longitude', 
-                    'Y': 'latitude', 
-                    'Z': 'population_density'
-                })
-
-        # Limit dates
-        start_date              = pd.to_datetime(f'{year}-01-01')
-        end_date                = pd.to_datetime(f'{year}-12-31')
-
-        # Filtramos por fecha
-        df_ff_temp              = df_ff_values[(start_date <= df_ff_values['date']) & (df_ff_values['date'] < end_date)]
-        lat_values, lon_values  = df_ff_temp['latitude'], df_ff_temp['longitude']
-
-        # Minimos
-        lat_min, lat_max        = lat_values.min(), lat_values.max()
-        lon_min, lon_max        = lon_values.min(), lon_values.max()
-
-        # Filtramos las latitudes
-        df_pd.sort_values(by="latitude")
-        df_pd                   = df_pd[lat_min <= df_pd['latitude']]
-        df_pd                   = df_pd[df_pd['latitude'] <= lat_max]
-
-        # Filtramos las longitudes
-        df_pd.sort_values(by="longitude")
-        df_pd                   = df_pd[lon_min <= df_pd['longitude']]
-        df_pd                   = df_pd[df_pd['longitude'] <= lon_max]
-
-        # Establecemos valores
-        df_pd.reset_index(drop=True, inplace=True)
-        lat, lon                    = df_pd['latitude'].to_numpy(), df_pd['longitude'].to_numpy()
-
-        # Hallamos los valores
-        points                      = np.vstack((lat, lon)).T
-        tree                        = cKDTree(points)
-        query_points                = np.vstack((lat_values, lon_values)).T
-        _, indexes                  = tree.query(query_points)
-        population_density_values   = df_pd.iloc[indexes]['population_density'].to_numpy()
-
-        df_pd_result = pd.concat([
-            df_pd_result, 
-            pd.DataFrame(
-                {
-                    'latitude': lat_values, 
-                    'longitude': lon_values,
-                    'year': np.full(len(lat_values), year),
-                    'population_density': population_density_values
-                }, 
-                columns=columns
-            )
-        ], ignore_index=True)
-
-        del df_pd
+        # eliminamos los datos
+        del df_ff
         gc.collect()
 
-    # guardamos los datos
-    csv_buffer = dataframe_a_csv_buffer(df_global_climate)
-    s3.put_object(
-        Bucket=bucket_name,
-        Key='raw/population_density.csv',
-        Body=csv_buffer.getvalue()
-    )
+        # guardamos los datos
+        csv_buffer = dataframe_a_csv_buffer(df_ff)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='raw/forest_fire.csv',
+            Body=csv_buffer.getvalue()
+        )
 
-    # eliminamos los datos
-    del df_ff_values
-    del df_pd_result
-    gc.collect()
+    # ------------------------------ NDVI ------------------------------
+    if dataset_name == "ndvi":
+        url                 = "https://data.humdata.org/dataset/7f2ba5ba-8df1-41cf-ab18-fc1da928a1e5/resource/c06298d9-0d4d-4e40-aecc-abc1da75dc4d/download/col-ndvi-adm2-full.csv"
+        df_ndvi             = pd.read_csv(url, low_memory=False)
+        df_ndvi             = df_ndvi.drop(index=0)
+
+        # guardamos los datos
+        csv_buffer          = dataframe_a_csv_buffer(df_ndvi)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='raw/ndvi.csv',
+            Body=csv_buffer.getvalue()
+        )
+
+        # eliminamos los datos
+        del df_ndvi
+        gc.collect()
+
+        # ------------------------------ DIVIPOLAS --------------------------------
+        client              = Socrata("www.datos.gov.co", None)
+        results             = client.get("gdxc-w37w", limit=2000)
+        df_divipolas        = pd.DataFrame.from_records(results)
+
+        fix_number                      = lambda x: float(str(x).replace(',', '.'))
+        df_divipolas['latitud']         = df_divipolas['latitud'].apply(fix_number)
+        df_divipolas['longitud']        = df_divipolas['longitud'].apply(fix_number)
+        
+        # guardamos los datos
+        csv_buffer          = dataframe_a_csv_buffer(df_divipolas)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='raw/divipolas.csv',
+            Body=csv_buffer.getvalue()
+        )
+
+        # eliminamos los datos
+        del df_divipolas
+        gc.collect()
+
+    # ------------------------------ GLOBAL CLIMATE ------------------------------
+    if dataset_name == "global_climate":
+        response = s3.get_object(Bucket=bucket, Key="raw/forest_fire.csv")
+        csv_content = response['Body'].read()
+
+        df_ff = pd.read_csv(io.BytesIO(csv_content))
+        df_ff_values            = df_ff[['date', 'latitude', 'longitude']].copy()
+        df_ff_values['date']    = pd.to_datetime(df_ff_values['date'])
+
+        # eliminamos los datos
+        del df_ff
+        gc.collect()
+
+        varnames            = [
+            "ws", "vpd", "vap", "tmin", "tmax", "swe", "srad", 
+            "soil", "q", "ppt", "pet", "def", "aet", "PDSI"
+        ]
+
+        dataset             = get_climate_data_country(df_ff_values.copy(), varnames)
+        df_global_climate   = pd.DataFrame(dataset)
+
+        # guardamos los datos
+        csv_buffer          = dataframe_a_csv_buffer(df_global_climate)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='raw/global_climate.csv',
+            Body=csv_buffer.getvalue()
+        )
+
+        # eliminamos los datos
+        del df_global_climate
+        gc.collect()
+
+    # ------------------------------ POPULATION DENSITY ------------------------------
+    if dataset_name == "population_density":
+        response = s3.get_object(Bucket=bucket, Key="raw/forest_fire.csv")
+        csv_content = response['Body'].read()
+
+        df_ff = pd.read_csv(io.BytesIO(csv_content))
+        df_ff_values            = df_ff[['date', 'latitude', 'longitude']].copy()
+        df_ff_values['date']    = pd.to_datetime(df_ff_values['date'])
+
+        columns         = ['latitude', 'longitude', 'population_density', 'year']
+        df_pd_result    = pd.DataFrame(columns=columns)
+
+        for year in range(2000, 2021):
+            # URL del ZIP
+            zip_url     = f"https://data.worldpop.org/GIS/Population_Density/Global_2000_2020_1km_UNadj/{year}/COL/col_pd_{year}_1km_UNadj_ASCII_XYZ.zip"
+
+            # Descargar el archivo ZIP
+            response    = requests.get(zip_url)
+            response.raise_for_status()
+
+            # Leer el ZIP en memoria
+            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                # Suponiendo que solo hay un archivo en el ZIP
+                csv_filename = z.namelist()[0]
+                
+                # Leer directamente el CSV dentro del ZIP con pandas
+                with z.open(csv_filename) as f:
+                    df_pd = pd.read_csv(f).rename(columns={
+                        'X': 'longitude', 
+                        'Y': 'latitude', 
+                        'Z': 'population_density'
+                    })
+
+            # Limit dates
+            start_date              = pd.to_datetime(f'{year}-01-01')
+            end_date                = pd.to_datetime(f'{year}-12-31')
+
+            # Filtramos por fecha
+            df_ff_temp              = df_ff_values[(start_date <= df_ff_values['date']) & (df_ff_values['date'] < end_date)]
+            lat_values, lon_values  = df_ff_temp['latitude'], df_ff_temp['longitude']
+
+            # Minimos
+            lat_min, lat_max        = lat_values.min(), lat_values.max()
+            lon_min, lon_max        = lon_values.min(), lon_values.max()
+
+            # Filtramos las latitudes
+            df_pd.sort_values(by="latitude")
+            df_pd                   = df_pd[lat_min <= df_pd['latitude']]
+            df_pd                   = df_pd[df_pd['latitude'] <= lat_max]
+
+            # Filtramos las longitudes
+            df_pd.sort_values(by="longitude")
+            df_pd                   = df_pd[lon_min <= df_pd['longitude']]
+            df_pd                   = df_pd[df_pd['longitude'] <= lon_max]
+
+            # Establecemos valores
+            df_pd.reset_index(drop=True, inplace=True)
+            lat, lon                    = df_pd['latitude'].to_numpy(), df_pd['longitude'].to_numpy()
+
+            # Hallamos los valores
+            points                      = np.vstack((lat, lon)).T
+            tree                        = cKDTree(points)
+            query_points                = np.vstack((lat_values, lon_values)).T
+            _, indexes                  = tree.query(query_points)
+            population_density_values   = df_pd.iloc[indexes]['population_density'].to_numpy()
+
+            df_pd_result = pd.concat([
+                df_pd_result, 
+                pd.DataFrame(
+                    {
+                        'latitude': lat_values, 
+                        'longitude': lon_values,
+                        'year': np.full(len(lat_values), year),
+                        'population_density': population_density_values
+                    }, 
+                    columns=columns
+                )
+            ], ignore_index=True)
+
+            del df_pd
+            gc.collect()
+
+        # guardamos los datos
+        csv_buffer = dataframe_a_csv_buffer(df_global_climate)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key='raw/population_density.csv',
+            Body=csv_buffer.getvalue()
+        )
+
+        # eliminamos los datos
+        del df_ff_values
+        del df_pd_result
+        gc.collect()
 
     # Duracion del programa
     end_time        = time.time()
