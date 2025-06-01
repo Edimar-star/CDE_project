@@ -13,6 +13,29 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
+# Layer permissions
+resource "aws_iam_role_policy" "lambda_layer_access" {
+  name = "AllowLambdaGetLayerVersion"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "AllowAccessToPublicLambdaLayers",
+        Effect = "Allow",
+        Action = "lambda:GetLayerVersion",
+        Resource = [
+          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-numpy:*",
+          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-pandas:*",
+          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-scipy:*",
+          "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-netCDF4:*"
+        ]
+      }
+    ]
+  })
+}
+
 # Lambda creation
 resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"
