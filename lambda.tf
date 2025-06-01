@@ -25,7 +25,7 @@ resource "aws_lambda_function" "etl_lambda" {
   layers = [aws_lambda_layer_version.etl_layer.arn]
 
   timeout     = 300       # 5 minutos
-  memory_size = 1024      # 1 GB
+  memory_size = 3072      # 3 GB
 }
 
 resource "aws_lambda_layer_version" "etl_layer" {
