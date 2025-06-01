@@ -28,7 +28,7 @@ resource "aws_lambda_function" "etl_lambda" {
     "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-scipy:4",
     "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-netCDF4:1",
     "arn:aws:lambda:eu-central-1:770693421928:layer:Klayers-p39-requests:4",
-    aws_lambda_layer_version.sodapy_layer.arn
+    aws_lambda_layer_version.etl_layer.arn
   ]
 }
 
