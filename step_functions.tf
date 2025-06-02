@@ -176,7 +176,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
           },
           RoleArn: "${aws_iam_role.sagemaker_execution_role.arn}"
         },
-        Next: true
+        End: true
       }
     }
   })
