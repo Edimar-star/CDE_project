@@ -57,7 +57,7 @@ def get_climate_data_by_date(varname, filehandle, time_values, lat_values, lon_v
     lon_index_max       = (np.abs(lon-lon_max)).argmin()
 
     [lat_index_min,lon_index_min] = check_latlon_bounds(lat, lon, lat_index_min, lon_index_min, lat_min, lon_min)
-    [lat_index_max,lon_index_max] = check_latlon_bounds(lat, lon, lat_index_max, lon_index_max, lon_max, lon_max)
+    [lat_index_max,lon_index_max] = check_latlon_bounds(lat, lon, lat_index_max, lon_index_max, lat_max, lon_max)
 
     if(lat_index_min>lat_index_max):
         lat_index_range = range(lat_index_max, lat_index_min+1)
@@ -190,22 +190,10 @@ def lambda_handler(event, context):
         start_date          = pd.to_datetime(f'{start_year}-01-01')
         end_date            = pd.to_datetime(f'{end_year}-12-31')
 
-        df_ndvi['date'] = pd.to_datetime(df_ndvi['date'])
+        df_ndvi['date']     = pd.to_datetime(df_ndvi['date'])
         df_ndvi             = df_ndvi[(start_date <= df_ndvi['date']) & (df_ndvi['date'] <= end_date)]
 
-        # guardamos los datos
-        csv_buffer          = dataframe_a_csv_buffer(df_ndvi)
-        s3.put_object(
-            Bucket=bucket_name,
-            Key='raw/ndvi/ndvi.csv',
-            Body=csv_buffer.getvalue()
-        )
-
-        # eliminamos los datos
-        del df_ndvi
-        gc.collect()
-
-        # ------------------------------ DIVIPOLAS --------------------------------
+        # ----- DIVIPOLAS -----
         client              = Socrata("www.datos.gov.co", None)
         results             = client.get("gdxc-w37w", limit=2000)
         df_divipolas        = pd.DataFrame.from_records(results)
@@ -213,17 +201,74 @@ def lambda_handler(event, context):
         fix_number                      = lambda x: float(str(x).replace(',', '.'))
         df_divipolas['latitud']         = df_divipolas['latitud'].apply(fix_number)
         df_divipolas['longitud']        = df_divipolas['longitud'].apply(fix_number)
-        
+        df_divipolas.rename(columns={'cod_mpio': 'ADM2_PCODE'}, inplace=True)
+
+        # union
+        fix_code                        = lambda x: x.replace("CO", "")
+        df_ndvi["ADM2_PCODE"]           = df_ndvi["ADM2_PCODE"].apply(fix_code)
+        df_ndvi                         = pd.merge(df_ndvi, df_divipolas, on="ADM2_PCODE", how="left")
+        df_ndvi.rename(columns={'latitud': 'latitude', 'longitud', 'longitude'}, inplace=True)
+
+        # eliminamos los datos
+        del df_divipolas
+        gc.collect()
+
+        response = s3.get_object(Bucket=bucket_name, Key="raw/forest_fire/forest_fire.csv")
+        csv_content = response['Body'].read()
+
+        df_ff = pd.read_csv(io.BytesIO(csv_content))
+        df_ff_values            = df_ff[['date', 'latitude', 'longitude']].copy()
+        df_ff_values['date']    = pd.to_datetime(df_ff_values['date'])
+
+        # eliminamos los datos
+        del df_ff
+        gc.collect()
+
+        values = {key: [] for key in df_ndvi.columns}
+        for year in range(start_year, end_year + 1):
+            # Limit dates
+            start_date              = pd.to_datetime(f'{year}-01-01')
+            end_date                = pd.to_datetime(f'{year}-12-31')
+
+            # Forest fire values
+            df_ff_temp              = df_ff_values[(start_date <= df_ff_values['date']) & (df_ff_values['date'] <= end_date)]
+            df_ff_temp.reset_index(drop=True, inplace=True)
+            lat_values, lon_values  = df_ff_temp['latitude'].values, df_ff_temp['longitude'].values
+            time_values = (df_ff_temp['date'] - start_date).dt.days.values
+
+            # Ndvi values
+            df_ndvi_temp = df_ndvi[(start_date <= df_ndvi['date']) & (df_ndvi['date'] <= end_date)]
+            df_ndvi_temp.reset_index(drop=True, inplace=True)
+            lat, lon = df_ndvi_temp['latitude'].values, df_ndvi_temp['longitude'].values
+            time = (df_ndvi_temp['date'] - start_date).dt.days.values
+
+            points = np.vstack((lat, lon, time)).T
+            tree = cKDTree(points)
+            query_points = np.vstack((lat_values, lon_values, time_values)).T
+            _, indexes = tree.query(query_points)
+
+            for key in ['latitude', 'longitude', 'date']:
+                values[key] += list(df_ff_temp[key].values)
+
+            for key in ['n_pixels', 'vim', 'vim_avg', 'viq']:
+                values[key] = np.append(values[key], df_ndvi_temp.iloc[indexes][key].values).astype(float)
+            
+            del df_ff_temp
+            del df_ndvi_temp
+            gc.collect()
+
         # guardamos los datos
-        csv_buffer          = dataframe_a_csv_buffer(df_divipolas)
+        df_ndvi_result      = pd.DataFrame(values).sort_values(by="date")
+        csv_buffer          = dataframe_a_csv_buffer(df_ndvi_result)
         s3.put_object(
             Bucket=bucket_name,
-            Key='raw/divipolas/divipolas.csv',
+            Key='raw/ndvi/ndvi.csv',
             Body=csv_buffer.getvalue()
         )
 
         # eliminamos los datos
-        del df_divipolas
+        del df_ndvi_result
+        del df_ndvi
         gc.collect()
 
     # ------------------------------ GLOBAL CLIMATE ------------------------------
@@ -305,12 +350,12 @@ def lambda_handler(event, context):
             lon_min, lon_max        = lon_values.min(), lon_values.max()
 
             # Filtramos las latitudes
-            df_pd.sort_values(by="latitude")
+            df_pd.sort_values(by="latitude", inplace=True)
             df_pd                   = df_pd[lat_min <= df_pd['latitude']]
             df_pd                   = df_pd[df_pd['latitude'] <= lat_max]
 
             # Filtramos las longitudes
-            df_pd.sort_values(by="longitude")
+            df_pd.sort_values(by="longitude", inplace=True)
             df_pd                   = df_pd[lon_min <= df_pd['longitude']]
             df_pd                   = df_pd[df_pd['longitude'] <= lon_max]
 
