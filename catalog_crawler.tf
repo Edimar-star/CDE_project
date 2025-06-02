@@ -19,10 +19,6 @@ resource "aws_glue_crawler" "org_report_crawler" {
   }
 
   s3_target {
-    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/divipolas/"
-  }
-
-  s3_target {
     path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/global_climate/"
   }
 

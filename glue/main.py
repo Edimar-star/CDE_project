@@ -43,13 +43,6 @@ dyf_ndvi = glueContext.create_dynamic_frame.from_catalog(
 )
 df_ndvi = dyf_ndvi.toDF()
 
-# ------------------------------- DIVIPOLAS --------------------------------
-dyf_divipolas = glueContext.create_dynamic_frame.from_catalog(
-    database='org-report',
-    table_name='divipolas'
-)
-df_divipolas = dyf_divipolas.toDF()
-
 # --------------------------- POPULATION DENSITY ---------------------------
 dyf_population_density = glueContext.create_dynamic_frame.from_catalog(
     database='org-report',
