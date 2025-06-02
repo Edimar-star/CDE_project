@@ -24,6 +24,7 @@ resource "aws_iam_role_policy" "step_function_policy" {
         "Sid": "AllowGlueAndSageMaker",
         "Effect": "Allow",
         "Action": [
+          "lambda:InvokeFunction",
           "glue:StartJobRun",
           "glue:GetJobRun",
           "glue:GetJobRuns",
