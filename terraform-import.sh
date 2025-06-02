@@ -52,9 +52,6 @@ imports=(
   "terraform import aws_apigatewayv2_route.lambda_route ${api_id}/${route_id}"
   "terraform import aws_apigatewayv2_stage.api_stage ${api_id}/${stage_name}"
   "terraform import aws_lambda_permission.allow_apigw api_lambda/AllowAPIGatewayInvoke"
-
-  "aws_iam_policy.api_gateway_lambda_access arn:aws:iam::${var.aws_region}:policy/ApiGatewayLambdaMinimalAccess"
-  "aws_iam_policy_attachment.attach_policy_to_user DEP_user/ApiGatewayLambdaMinimalAccess"
 )
 
 echo "Validando importaciones Terraform..."
