@@ -73,20 +73,20 @@ def get_climate_data_by_date(varname, filehandle, time_values, lat_values, lon_v
 
     # subset in time
     timehandle          = filehandle.variables['time']
-    time                = timehandle[:]
+    time_                = timehandle[:]
     time_min            = (date(year,1,1)-date(1900,1,1)).days
     time_max            = (date(year,12,31)-date(1900,1,1)).days
-    time_index_min      = (np.abs(time-time_min)).argmin()
-    time_index_max      = (np.abs(time-time_max)).argmin()
+    time_index_min      = (np.abs(time_-time_min)).argmin()
+    time_index_max      = (np.abs(time_-time_max)).argmin()
     time_index_range    = range(time_index_min, time_index_max+1)
-    time                = timehandle[time_index_range]
+    time_                = timehandle[time_index_range]
 
     # subset data
     datahandle          = filehandle.variables[varname]
     data                = datahandle[time_index_range, lat_index_range, lon_index_range]
 
     # Indexes
-    time_indexes        = get_indexes(time, time_values)
+    time_indexes        = get_indexes(time_, time_values)
     lat_indexes         = get_indexes(lat, lat_values)
     lon_indexes         = get_indexes(lon, lon_values)
 
@@ -141,8 +141,8 @@ def dataframe_a_csv_buffer(df):
 
 # Lambda function
 def lambda_handler(event, context):
-    start_time  = time.time()
-    dataset_name = event.get("dataset_name", "forest_fire")
+    start_time      = time.time()
+    dataset_name    = event.get("dataset_name", "forest_fire")
 
     # Definicion del bucket de s3
     s3          = boto3.client('s3')
@@ -240,9 +240,9 @@ def lambda_handler(event, context):
             df_ndvi_temp = df_ndvi[(start_date <= df_ndvi['date']) & (df_ndvi['date'] <= end_date)]
             df_ndvi_temp.reset_index(drop=True, inplace=True)
             lat, lon = df_ndvi_temp['latitude'].values, df_ndvi_temp['longitude'].values
-            time = (df_ndvi_temp['date'] - start_date).dt.days.values
+            time_ = (df_ndvi_temp['date'] - start_date).dt.days.values
 
-            points = np.vstack((lat, lon, time)).T
+            points = np.vstack((lat, lon, time_)).T
             tree = cKDTree(points)
             query_points = np.vstack((lat_values, lon_values, time_values)).T
             _, indexes = tree.query(query_points)
