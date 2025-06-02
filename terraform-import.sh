@@ -6,10 +6,10 @@ region="eu-central-1"
 account_id=$(aws sts get-caller-identity --query Account --output text)
 
 # gateway ids
-api_id=$(aws apigatewayv2 get-apis)
-integration_id=$(aws apigatewayv2 get-integrations --api-id "${api_id}")
-route_id=$(aws apigatewayv2 get-routes --api-id "${api_id}")
-stage_name=$(aws apigatewayv2 get-stages --api-id "${api_id}")
+api_id=$(aws apigatewayv2 get-apis --query "Items[0].ApiId" --output text)
+integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
+route_id=$(aws apigatewayv2 get-routes --api-id "$api_id" --query "Items[0].RouteId" --output text)
+stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
 
 imports=(
   # Buckets
