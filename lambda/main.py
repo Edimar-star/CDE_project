@@ -207,7 +207,7 @@ def lambda_handler(event, context):
         fix_code                        = lambda x: x.replace("CO", "")
         df_ndvi["ADM2_PCODE"]           = df_ndvi["ADM2_PCODE"].apply(fix_code)
         df_ndvi                         = pd.merge(df_ndvi, df_divipolas, on="ADM2_PCODE", how="left")
-        df_ndvi.rename(columns={'latitud': 'latitude', 'longitud', 'longitude'}, inplace=True)
+        df_ndvi.rename(columns={'latitud': 'latitude', 'longitud': 'longitude'}, inplace=True)
 
         # eliminamos los datos
         del df_divipolas
