@@ -16,7 +16,7 @@ imports=(
   "aws_iam_role.lambda_exec_role lambda_exec_role"
   "aws_iam_role_policy.lambda_s3_write_access lambda_exec_role:lambda-s3-putobject"
   "aws_lambda_function.etl_lambda etl_lambda"
-  "aws_lambda_function.etl_lambda api_lambda"
+  "aws_lambda_function.api_lambda api_lambda"
 
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
@@ -59,20 +59,18 @@ api_id=$(aws apigatewayv2 get-apis --query "Items[?Name=='api-gateway'].ApiId" -
 
 if [ -z "$api_id" ]; then
   echo "❌ No se encontró API Gateway con el nombre 'api-gateway'"
-  echo "Validación completa."
-  exit 1
+else
+  # 2. Obtener IDs relacionados
+  integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
+  route_id=$(aws apigatewayv2 get-routes --api-id "$api_id" --query "Items[0].RouteId" --output text)
+  stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
+
+  # 3. Importar recursos
+  echo "🚀 Importando recursos a Terraform..."
+  terraform import aws_apigatewayv2_api.api "$api_id"
+  terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
+  terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
+  terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
 fi
-
-# 2. Obtener IDs relacionados
-integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
-route_id=$(aws apigatewayv2 get-routes --api-id "$api_id" --query "Items[0].RouteId" --output text)
-stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
-
-# 3. Importar recursos
-echo "🚀 Importando recursos a Terraform..."
-terraform import aws_apigatewayv2_api.api "$api_id"
-terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
-terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
-terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
 
 echo "Validación completa."
