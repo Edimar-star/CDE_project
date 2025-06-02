@@ -41,7 +41,7 @@ imports=(
   "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
 )
 
-echo "Validando importaciones Terraform..."
+echo "Checking Terraform imports..."
 
 for imp in "${imports[@]}"
 do
@@ -49,7 +49,7 @@ do
   if terraform import $imp 2>/dev/null; then
     echo "OK"
   else
-    echo "FALLO o recurso no existe"
+    echo "FAIL"
   fi
 done
 
@@ -58,7 +58,7 @@ done
 api_id=$(aws apigatewayv2 get-apis --query "Items[?Name=='api-gateway'].ApiId" --output text)
 
 if [ -z "$api_id" ]; then
-  echo "❌ No se encontró API Gateway con el nombre 'api-gateway'"
+  echo "❌ API Gateway with name 'api-gateway' not found"
 else
   # 2. Obtener IDs relacionados
   integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
@@ -66,18 +66,24 @@ else
   stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
 
   # 3. Importar recursos
-  echo "🚀 Importando recursos a Terraform..."
+  echo "🚀 Importing resources to Terraform..."
   terraform import aws_apigatewayv2_api.api "$api_id"
 
   if [ -z "$integration_id" ]; then
+    echo "❌ Integrations not found"
+  else
     terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
   fi
 
   if [ -z "$route_id" ]; then
+    echo "❌ Routes not found"
+  else
     terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
   fi
 
   if [ -z "$stage_name" ]; then
+    echo "❌ Stages not found"
+  else
     terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
   fi
   
