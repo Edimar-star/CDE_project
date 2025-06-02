@@ -5,12 +5,6 @@ set -e
 region="eu-central-1"
 account_id=$(aws sts get-caller-identity --query Account --output text)
 
-# gateway ids
-api_id=$(aws apigatewayv2 get-apis --query "Items[0].ApiId" --output text)
-integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
-route_id=$(aws apigatewayv2 get-routes --api-id "$api_id" --query "Items[0].RouteId" --output text)
-stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
-
 imports=(
   # Buckets
   "aws_s3_bucket.source-data-bucket source-data-bucket-6i2caq"
@@ -45,13 +39,6 @@ imports=(
   "aws_iam_role.sagemaker_execution_role sagemaker-execution-role"
   "aws_iam_role_policy.sagemaker_s3_access sagemaker-execution-role:sagemaker-s3-access"
   "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
-
-  # API Gateway
-  "terraform import aws_apigatewayv2_api.api ${api_id}"
-  "terraform import aws_apigatewayv2_integration.lambda_integration ${api_id}/${integration_id}"
-  "terraform import aws_apigatewayv2_route.lambda_route ${api_id}/${route_id}"
-  "terraform import aws_apigatewayv2_stage.api_stage ${api_id}/${stage_name}"
-  "terraform import aws_lambda_permission.allow_apigw api_lambda/AllowAPIGatewayInvoke"
 )
 
 echo "Validando importaciones Terraform..."
@@ -65,5 +52,27 @@ do
     echo "FALLO o recurso no existe"
   fi
 done
+
+
+# 1. Obtener el ID del API Gateway
+api_id=$(aws apigatewayv2 get-apis --query "Items[?Name=='api-gateway'].ApiId" --output text)
+
+if [ -z "$api_id" ]; then
+  echo "❌ No se encontró API Gateway con el nombre 'api-gateway'"
+  echo "Validación completa."
+  exit 1
+fi
+
+# 2. Obtener IDs relacionados
+integration_id=$(aws apigatewayv2 get-integrations --api-id "$api_id" --query "Items[0].IntegrationId" --output text)
+route_id=$(aws apigatewayv2 get-routes --api-id "$api_id" --query "Items[0].RouteId" --output text)
+stage_name=$(aws apigatewayv2 get-stages --api-id "$api_id" --query "Items[0].StageName" --output text)
+
+# 3. Importar recursos
+echo "🚀 Importando recursos a Terraform..."
+terraform import aws_apigatewayv2_api.api "$api_id"
+terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
+terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
+terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
 
 echo "Validación completa."
