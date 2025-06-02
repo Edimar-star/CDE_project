@@ -52,6 +52,7 @@ resource "aws_iam_role_policy" "glue_service_role_policy" {
           "s3:DeleteObject"
         ],
         Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.code-bucket.bucket}/*",
           "arn:aws:s3:::${aws_s3_bucket.source-data-bucket.bucket}/*",
           "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.bucket}/*"
         ]

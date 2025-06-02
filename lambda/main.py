@@ -11,6 +11,8 @@ import time
 import gc
 import io
 
+start_year = 2002
+end_year = 2020
 
 # Revisa si las coordenadas se encuentran en el rango correcto
 def check_latlon_bounds(lat, lon, lat_index, lon_index, lat_target, lon_target):
@@ -95,7 +97,7 @@ def get_climate_data_by_date(varname, filehandle, time_values, lat_values, lon_v
 def get_climate_data_country(df_ff_values, varnames):
     ans = {varname: [] for varname in ["date", "latitude", "longitude"] + varnames}
 
-    for year in range(2000, 2024):
+    for year in range(start_year, end_year + 1):
         # Limit dates
         start_date          = pd.to_datetime(f'{year}-01-01')
         end_date            = pd.to_datetime(f'{year}-12-31')
@@ -149,7 +151,7 @@ def lambda_handler(event, context):
     # ------------------------------ FOREST FIRE ------------------------------
     if dataset_name == "forest_fire":
         df_ff = None
-        for year in range(2002, 2021):
+        for year in range(start_year, end_year + 1):
             url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
 
             if df_ff is None:
@@ -184,6 +186,10 @@ def lambda_handler(event, context):
         url                 = "https://data.humdata.org/dataset/7f2ba5ba-8df1-41cf-ab18-fc1da928a1e5/resource/c06298d9-0d4d-4e40-aecc-abc1da75dc4d/download/col-ndvi-adm2-full.csv"
         df_ndvi             = pd.read_csv(url, low_memory=False)
         df_ndvi             = df_ndvi.drop(index=0)
+
+        start_date          = pd.to_datetime(f'{year}-01-01')
+        end_date            = pd.to_datetime(f'{year}-12-31')
+        df_ndvi             = df_ndvi[(start_date <= df_ndvi['date']) & (df_ndvi['date'] <= end_date)]
 
         # guardamos los datos
         csv_buffer          = dataframe_a_csv_buffer(df_ndvi)
@@ -263,7 +269,7 @@ def lambda_handler(event, context):
         columns         = ['latitude', 'longitude', 'population_density', 'year']
         df_pd_result    = pd.DataFrame(columns=columns)
 
-        for year in range(2000, 2021):
+        for year in range(start_year, end_year + 1):
             # URL del ZIP
             zip_url     = f"https://data.worldpop.org/GIS/Population_Density/Global_2000_2020_1km_UNadj/{year}/COL/col_pd_{year}_1km_UNadj_ASCII_XYZ.zip"
 
@@ -289,7 +295,7 @@ def lambda_handler(event, context):
             end_date                = pd.to_datetime(f'{year}-12-31')
 
             # Filtramos por fecha
-            df_ff_temp              = df_ff_values[(start_date <= df_ff_values['date']) & (df_ff_values['date'] < end_date)]
+            df_ff_temp              = df_ff_values[(start_date <= df_ff_values['date']) & (df_ff_values['date'] <= end_date)]
             lat_values, lon_values  = df_ff_temp['latitude'], df_ff_temp['longitude']
 
             # Minimos
