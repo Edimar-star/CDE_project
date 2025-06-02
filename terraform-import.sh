@@ -69,19 +69,19 @@ else
   echo "🚀 Importing resources to Terraform..."
   terraform import aws_apigatewayv2_api.api "$api_id"
 
-  if [ -z "$integration_id" ]; then
+  if [ -z "$integration_id" ] || [ "$integration_id" == "None" ]; then
     echo "❌ Integrations not found"
   else
     terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
   fi
 
-  if [ -z "$route_id" ]; then
+  if [ -z "$route_id" ] || [ "$route_id" == "None" ]; then
     echo "❌ Routes not found"
   else
     terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
   fi
 
-  if [ -z "$stage_name" ]; then
+  if [ -z "$stage_name" ] || [ "$stage_name" == "None" ]; then
     echo "❌ Stages not found"
   else
     terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
