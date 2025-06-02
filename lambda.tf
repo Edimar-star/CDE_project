@@ -26,7 +26,10 @@ resource "aws_iam_role_policy" "lambda_s3_write_access" {
           "s3:GetObject",
           "s3:PutObject"
         ],
-        Resource = "arn:aws:s3:::source-data-bucket-6i2caq/raw/*"
+        Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.source-data-bucket.id}/raw/*",
+          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}/model/*"
+        ]
       }
     ]
   })
@@ -41,6 +44,21 @@ resource "aws_lambda_function" "etl_lambda" {
   s3_bucket         = aws_s3_bucket.code-bucket.id
   s3_key            = aws_s3_object.lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/lambda_function.zip")
+  layers = [aws_lambda_layer_version.etl_layer.arn]
+
+  memory_size   = 3008
+  timeout       = 900 
+}
+
+# api lambda
+resource "aws_lambda_function" "api_lambda" {
+  function_name     = "api_lambda"
+  role              = aws_iam_role.lambda_exec_role.arn
+  handler           = "api_lambda_function.lambda_handler"
+  runtime           = "python3.9"
+  s3_bucket         = aws_s3_bucket.code-bucket.id
+  s3_key            = aws_s3_object.lambda_zip.key
+  source_code_hash  = filebase64sha256("${path.module}/lambda/api_lambda_function.zip")
   layers = [aws_lambda_layer_version.etl_layer.arn]
 
   memory_size   = 3008

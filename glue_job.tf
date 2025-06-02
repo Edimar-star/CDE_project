@@ -4,7 +4,7 @@ resource "aws_glue_job" "glue_job" {
     description         = "Transform all tables and one table"
     glue_version        = "4.0"
     worker_type         = "G.1X"
-    timeout             = 2880
+    timeout             = 60
     max_retries         = 1
     number_of_workers   = 2
     command {

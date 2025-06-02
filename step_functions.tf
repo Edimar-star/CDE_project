@@ -147,10 +147,10 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Type: "Task",
         Resource: "arn:aws:states:::sagemaker:createTrainingJob.sync",
         Parameters: {
-          TrainingJobName: "fires-sklearn-training-$$!UUID",
+          TrainingJobName: "fires-sklearn-training-${uuid()}",
           AlgorithmSpecification: {
             TrainingInputMode: "File",
-            TrainingImage: "683313688378.dkr.ecr.eu-central-1.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
+            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
           },
           InputDataConfig: [{
             ChannelName: "train",
@@ -176,7 +176,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
           },
           RoleArn: "${aws_iam_role.sagemaker_execution_role.arn}"
         },
-        End: true
+        Next: true
       }
     }
   })

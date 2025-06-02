@@ -101,9 +101,10 @@ df_final = df_final.join(
 
 # -------------------------- Renombrar columnas -----------------------------
 print("Renombrando columnas...")
+df_final = df_final.withColumn("days", datediff(col("date"), lit("2002-01-01")))
 columns = {
     "latitude": "latitude", "longitude": "longitude", "population_density": "population_density", 
-    "date": "date", "ws": "wind_speed", "vpd": "vapor_pressure_deficit", "vap": "vapor_pressure", 
+    "days": "days", "ws": "wind_speed", "vpd": "vapor_pressure_deficit", "vap": "vapor_pressure", 
     "tmin": "minimum_temperature", "tmax": "maximum_temperature", "swe": "snow_water_equivalent",
     "srad": "surface_shortwave_radiation", "soil": "soil_moisture", "q": "runoff", "ppt": "precipitation_accumulation", 
     "pet": "Reference_evapotranspiration", "def": "climate_water_deficit", "aet": "actual_Evapotranspiration",

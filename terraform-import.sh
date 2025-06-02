@@ -5,6 +5,12 @@ set -e
 region="eu-central-1"
 account_id=$(aws sts get-caller-identity --query Account --output text)
 
+# gateway ids
+api_id=$(aws apigatewayv2 get-apis)
+integration_id=$(aws apigatewayv2 get-integrations --api-id "${api_id}")
+route_id=$(aws apigatewayv2 get-routes --api-id "${api_id}")
+stage_name=$(aws apigatewayv2 get-stages --api-id "${api_id}")
+
 imports=(
   # Buckets
   "aws_s3_bucket.source-data-bucket source-data-bucket-6i2caq"
@@ -16,6 +22,7 @@ imports=(
   "aws_iam_role.lambda_exec_role lambda_exec_role"
   "aws_iam_role_policy.lambda_s3_write_access lambda_exec_role:lambda-s3-putobject"
   "aws_lambda_function.etl_lambda etl_lambda"
+  "aws_lambda_function.etl_lambda api_lambda"
 
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
@@ -39,9 +46,12 @@ imports=(
   "aws_iam_role_policy.sagemaker_s3_access sagemaker-execution-role:sagemaker-s3-access"
   "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
 
-  # Lambda API
-
   # API Gateway
+  "terraform import aws_apigatewayv2_api.api ${api_id}"
+  "terraform import aws_apigatewayv2_integration.lambda_integration ${api_id}/${integration_id}"
+  "terraform import aws_apigatewayv2_route.lambda_route ${api_id}/${route_id}"
+  "terraform import aws_apigatewayv2_stage.api_stage ${api_id}/${stage_name}"
+  "terraform import aws_lambda_permission.allow_apigw api_lambda/AllowAPIGatewayInvoke"
 )
 
 echo "Validando importaciones Terraform..."

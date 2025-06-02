@@ -14,6 +14,10 @@ import io
 start_year = 2002
 end_year = 2020
 
+# Definicion del bucket de s3
+s3          = boto3.client('s3')
+bucket_name = 'source-data-bucket-6i2caq'
+
 # Revisa si las coordenadas se encuentran en el rango correcto
 def check_latlon_bounds(lat, lon, lat_index, lon_index, lat_target, lon_target):
     if(lat[lat_index]>lat_target):
@@ -143,10 +147,6 @@ def dataframe_a_csv_buffer(df):
 def lambda_handler(event, context):
     start_time      = time.time()
     dataset_name    = event.get("dataset_name", "forest_fire")
-
-    # Definicion del bucket de s3
-    s3          = boto3.client('s3')
-    bucket_name = 'source-data-bucket-6i2caq'
 
     # ------------------------------ FOREST FIRE ------------------------------
     if dataset_name == "forest_fire":
@@ -409,5 +409,5 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': f'Datasets successfully uploaded in {minutes}m y {seconds}s'
+        'body': f'Dataset {dataset_name} successfully uploaded in {minutes}m y {seconds}s'
     }
