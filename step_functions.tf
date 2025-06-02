@@ -105,7 +105,19 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Parameters: {
           JobName: "glue-job"
         },
+        Catch: [
+          {
+            ErrorEquals: ["States.TaskFailed"],
+            ResultPath: "$.glueJobError",
+            Next: "FailGlueJob"
+          }
+        ],
         Next: "TrainModel"
+      },
+      FailGlueJob: {
+        Type: "Fail",
+        Error: "GlueJobFailed",
+        Cause: "El Glue Job falló"
       },
       TrainModel: {
         Type: "Task",
