@@ -74,3 +74,29 @@ jobs:
           aws stepfunctions start-execution \
             --state-machine-arn arn:aws:states:eu-central-1:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
             --name etl-run-$(date +%s) \
+
+  destroy-resources-app:
+    needs: start-step-function
+    runs-on: ubuntu-latest
+    if: ${{ vars.TF_DESTROY == 'true' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
