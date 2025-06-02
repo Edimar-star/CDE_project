@@ -18,23 +18,44 @@ resource "aws_iam_role_policy" "step_function_policy" {
   role = aws_iam_role.step_function_role.id
 
   policy = jsonencode({
-    Version: "2012-10-17",
-    Statement: [
+    "Version": "2012-10-17",
+    "Statement": [
       {
-        Effect: "Allow",
-        Action: [
-          "lambda:InvokeFunction",
-          "glue:StartCrawler",
+        "Sid": "AllowGlueAndSageMaker",
+        "Effect": "Allow",
+        "Action": [
           "glue:StartJobRun",
+          "glue:GetJobRun",
+          "glue:GetJobRuns",
+          "glue:GetJob",
+          "glue:BatchGetJobs",
+          "glue:BatchGetJobRuns",
           "sagemaker:CreateTrainingJob",
-          "sagemaker:DescribeTrainingJob",
-          "events:PutRule",
-          "events:PutTargets",
-          "events:DescribeRule",
-          "events:DeleteRule",
-          "iam:PassRole"
+          "sagemaker:DescribeTrainingJob"
         ],
-        Resource: "*"
+        "Resource": "*"
+      },
+      {
+        "Sid": "AllowS3Access",
+        "Effect": "Allow",
+        "Action": [
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ],
+        "Resource": [
+          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}",
+          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}/*"
+        ]
+      },
+      {
+        "Sid": "AllowPassRole",
+        "Effect": "Allow",
+        "Action": "iam:PassRole",
+        "Resource": [
+          "arn:aws:iam::${var.account_id}:role/glue-service-role",
+          "arn:aws:iam::${var.account_id}:role/sagemaker-execution-role"
+        ]
       }
     ]
   })
@@ -112,6 +133,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
             Next: "FailGlueJob"
           }
         ],
+        ResultPath: "$.glueResult",
         Next: "TrainModel"
       },
       FailGlueJob: {

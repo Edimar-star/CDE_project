@@ -36,6 +36,7 @@ imports=(
 
   # Sagemark
   "aws_iam_role.sagemaker_execution_role sagemaker-execution-role"
+  "aws_iam_role_policy.sagemaker_s3_access sagemaker-execution-role:sagemaker-s3-access"
   "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
 
   # Lambda API
