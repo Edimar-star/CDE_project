@@ -189,6 +189,8 @@ def lambda_handler(event, context):
 
         start_date          = pd.to_datetime(f'{start_year}-01-01')
         end_date            = pd.to_datetime(f'{end_year}-12-31')
+
+        df_ndvi['date'] = pd.to_datetime(df_ndvi['date'])
         df_ndvi             = df_ndvi[(start_date <= df_ndvi['date']) & (df_ndvi['date'] <= end_date)]
 
         # guardamos los datos
