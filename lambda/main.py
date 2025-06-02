@@ -225,7 +225,7 @@ def lambda_handler(event, context):
         del df_ff
         gc.collect()
 
-        values = {key: [] for key in df_ndvi.columns}
+        values = {key: [] for key in ['latitude', 'longitude', 'date', 'n_pixels', 'vim', 'vim_avg', 'viq']}
         for year in range(start_year, end_year + 1):
             # Limit dates
             start_date              = pd.to_datetime(f'{year}-01-01')
@@ -252,7 +252,7 @@ def lambda_handler(event, context):
                 values[key] += list(df_ff_temp[key].values)
 
             for key in ['n_pixels', 'vim', 'vim_avg', 'viq']:
-                values[key] = np.append(values[key], df_ndvi_temp.iloc[indexes][key].values).astype(float)
+                values[key] += list(df_ndvi_temp.iloc[indexes][key].astype(float).values)
             
             del df_ff_temp
             del df_ndvi_temp
