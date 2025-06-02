@@ -9,9 +9,27 @@ resource "aws_glue_crawler" "org_report_crawler" {
   name          = "org-report-crawler"
   database_name = aws_glue_catalog_database.org_report_database.name
   role          = aws_iam_role.glue_service_role.name
+  
   s3_target {
-    path = "s3://${aws_s3_bucket.source-data-bucket.id}/raw/"
+    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/forest_fire/"
   }
+
+  s3_target {
+    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/ndvi/"
+  }
+
+  s3_target {
+    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/divipolas/"
+  }
+
+  s3_target {
+    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/global_climate/"
+  }
+
+  s3_target {
+    path = "s3://${aws_s3_bucket.source-data-bucket.bucket}/raw/population_density/"
+  }
+
   schema_change_policy {
     delete_behavior = "LOG"
   }

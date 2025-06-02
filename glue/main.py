@@ -77,8 +77,8 @@ df_final                = df_forest_fire.join(
 
 
 # -------------- UNION DATA FOREST_FIRE - POPULATION_DENSITY --------------------
-df_population_density   = df_population_density.withColumn("date", F.to_date("date", "yyyy-MM-dd"))
-df_population_density   = df_population_density.withColumn("year", F.year("date"))
+df_final   = df_final.withColumn("date", F.to_date("date", "yyyy-MM-dd"))
+df_final   = df_final.withColumn("year", F.year("date"))
 
 # join por latitude, longitude y year
 df_final                = df_final.join(
@@ -129,19 +129,19 @@ closest                 = joined.withColumn("rn", F.row_number().over(window_spe
 # Quitar prefijos
 result                  = closest.select(
     [F.col(f"a.{c}").alias(c) for c in df_final.columns] + 
-    [F.col(f"b.{c}").alias(f"{c}_from_df_ndvi_result") for c in df_ndvi_result.columns if c not in df_final.columns]
+    [F.col(f"b.{c}").alias(c) for c in df_ndvi_result.columns if c not in df_final.columns]
 )
 
 # Renombramiento de columnas
 columns = {
-    "latitude": "latitude", "longitude": "longitude", "population_density": "population_density", "General class": "land_cover_type",
-    "class": "land_cover_subtype", "Sub-class": "vegetation_percent", "date": "date", "ws": "wind_speed", "vpd": "vapor_pressure_deficit",
-    "vap": "vapor_pressure", "tmin": "minimum_temperature", "tmax": "maximum_temperature", "swe": "snow_water_equivalent",
-    "srad": "surface_shortwave_radiation", "soil": "soil_moisture", "q": "runoff", "ppt": "precipitation_accumulation",
+    "latitude": "latitude", "longitude": "longitude", "population_density": "population_density", 
+    "date": "date", "ws": "wind_speed", "vpd": "vapor_pressure_deficit", "vap": "vapor_pressure", 
+    "tmin": "minimum_temperature", "tmax": "maximum_temperature", "swe": "snow_water_equivalent",
+    "srad": "surface_shortwave_radiation", "soil": "soil_moisture", "q": "runoff", "ppt": "precipitation_accumulation", 
     "pet": "Reference_evapotranspiration", "def": "climate_water_deficit", "aet": "actual_Evapotranspiration",
-    "PDSI": "palmer_drought_severity_index", "brightness": "brightness_temperature", "scan": "scan_fire_size", "track": "track_fire_size",
-    "confidence": "confidence", "frp": "fire_radiative_power", "daynight": "daynight", "type": "fire_type", "n_pixels": "n_pixels_ndvi",
-    "vim": "ndvi", "vim_avg": "ndvi_long_term_average", "viq": "ndvi_anomaly_percent", "year": "year"
+    "PDSI": "palmer_drought_severity_index", "brightness": "brightness_temperature", "scan": "scan_fire_size", 
+    "track": "track_fire_size", "confidence": "confidence", "frp": "fire_radiative_power", "daynight": "daynight", 
+    "type": "fire_type", "n_pixels": "n_pixels_ndvi", "vim": "ndvi", "vim_avg": "ndvi_long_term_average", "viq": "ndvi_anomaly_percent"
 }
 
 for old_name, new_name in columns.items():
