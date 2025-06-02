@@ -39,3 +39,38 @@ resource "aws_lambda_permission" "allow_apigw" {
 output "lambda_api_url" {
   value = "${aws_apigatewayv2_api.api.api_endpoint}/predict"
 }
+
+# ------------------- IAM ROLES ------------------------
+
+resource "aws_iam_policy" "api_gateway_lambda_access" {
+  name        = "ApiGatewayLambdaMinimalAccess"
+  description = "Permite gestionar API Gateway y su integración con Lambda"
+  policy      = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "apigateway:GET",
+          "apigateway:POST",
+          "apigateway:PUT",
+          "apigateway:PATCH",
+          "apigateway:DELETE",
+          "lambda:GetFunction",
+          "lambda:InvokeFunction",
+          "lambda:CreateFunction",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "iam:PassRole"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "attach_policy_to_user" {
+  name       = "attach-apigateway-lambda"
+  users      = ["DEP_user"] # Cambia esto si estás usando un role
+  policy_arn = aws_iam_policy.api_gateway_lambda_access.arn
+}
