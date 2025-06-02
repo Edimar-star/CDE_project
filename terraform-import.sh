@@ -68,9 +68,19 @@ else
   # 3. Importar recursos
   echo "🚀 Importando recursos a Terraform..."
   terraform import aws_apigatewayv2_api.api "$api_id"
-  terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
-  terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
-  terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
+
+  if [ -z "$integration_id" ]; then
+    terraform import aws_apigatewayv2_integration.lambda_integration "$api_id/$integration_id"
+  fi
+
+  if [ -z "$route_id" ]; then
+    terraform import aws_apigatewayv2_route.lambda_route "$api_id/$route_id"
+  fi
+
+  if [ -z "$stage_name" ]; then
+    terraform import aws_apigatewayv2_stage.api_stage "$api_id/$stage_name"
+  fi
+  
 fi
 
 echo "Validación completa."
