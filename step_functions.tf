@@ -25,6 +25,7 @@ resource "aws_iam_role_policy" "step_function_policy" {
         "Effect": "Allow",
         "Action": [
           "lambda:InvokeFunction",
+          "glue:StartCrawler",
           "glue:StartJobRun",
           "glue:GetJobRun",
           "glue:GetJobRuns",
