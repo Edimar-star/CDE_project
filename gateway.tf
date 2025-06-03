@@ -37,5 +37,5 @@ resource "aws_lambda_permission" "allow_apigw" {
 }
 
 output "lambda_api_url" {
-  value = "${aws_apigatewayv2_api.api.api_endpoint}/predict"
+  value = "${aws_apigatewayv2_api.api.api_endpoint}/data"
 }
