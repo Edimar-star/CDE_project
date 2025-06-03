@@ -104,6 +104,11 @@ jobs:
         run: |
           API_ENDPOINT=$(aws apigatewayv2 get-apis --query "Items[?Name=='api-gateway'].ApiEndpoint" --output text)
           echo "api_endpoint=$API_ENDPOINT" >> "$GITHUB_OUTPUT"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Execute python Script
         run: python3 ./model/main.py ${{ steps.account.outputs.api_endpoint }}
