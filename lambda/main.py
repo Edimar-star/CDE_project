@@ -155,9 +155,15 @@ def lambda_handler(event, context):
             url = f"https://firms.modaps.eosdis.nasa.gov/data/country/modis/{year}/modis_{year}_Colombia.csv"
 
             if df_ff is None:
-                df_ff = pd.read_csv(url)
+                try:
+                    df_ff = pd.read_csv(url)
+                except Exception:
+                    print(f"Error on year: {year}")
             else:
-                df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
+                try:
+                    df_ff = pd.concat([df_ff, pd.read_csv(url)], ignore_index=True)
+                except Exception:
+                    print(f"Error on year: {year}")
 
         df_ff = pd.merge(
             df_ff.sort_values(by="acq_date")
