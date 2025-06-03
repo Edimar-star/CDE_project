@@ -61,7 +61,8 @@ resource "aws_iam_role_policy" "step_function_policy" {
         "Action": "iam:PassRole",
         "Resource": [
           "arn:aws:iam::${var.account_id}:role/glue-service-role",
-          "arn:aws:iam::${var.account_id}:role/sagemaker-execution-role"
+          "arn:aws:iam::${var.account_id}:role/sagemaker-execution-role",
+          "arn:aws:iam::${var.account_id}:role/step-function-role"
         ]
       }
     ]

@@ -17,6 +17,7 @@ imports=(
   "aws_iam_role_policy.lambda_s3_write_access lambda_exec_role:lambda-s3-putobject"
   "aws_lambda_function.etl_lambda etl_lambda"
   "aws_lambda_function.api_lambda api_lambda"
+  "aws_lambda_permission.allow_apigw api_lambda/AllowAPIGatewayInvoke"
 
   # Glue
   "aws_iam_role.glue_service_role glue_service_role"
