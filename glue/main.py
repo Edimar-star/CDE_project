@@ -101,7 +101,7 @@ df_final = df_final.join(
 
 # -------------------------- Renombrar columnas -----------------------------
 print("Renombrando columnas...")
-df_final = df_final.withColumn("days", datediff(col("date"), lit("2002-01-01")))
+df_final = df_final.withColumn("days", F.datediff(F.col("date"), F.lit("2002-01-01")))
 columns = {
     "latitude": "latitude", "longitude": "longitude", "population_density": "population_density", 
     "days": "days", "ws": "wind_speed", "vpd": "vapor_pressure_deficit", "vap": "vapor_pressure", 
