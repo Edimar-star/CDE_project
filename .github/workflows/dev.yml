@@ -76,12 +76,52 @@ jobs:
       - name: Execute Step Function
         run: |
           aws stepfunctions start-execution \
-            --state-machine-arn arn:aws:states:eu-central-1:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
+            --state-machine-arn arn:aws:states:${{ secrets.AWS_REGION }}:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
             --name etl-run-$(date +%s) \
 
+      - name: Waiting for step function execution
+        run: |
+          sleep 5
+          STATE_MACHINE_ARN="arn:aws:states:${{ secrets.AWS_REGION }}:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow"
+          
+          echo "Obteniendo última ejecución..."
+          EXECUTION_ARN=$(aws stepfunctions list-executions \
+            --state-machine-arn "$STATE_MACHINE_ARN" \
+            --max-items 1 \
+            --query "executions[0].executionArn" \
+            --output text)
+
+          echo "Última ejecución: $EXECUTION_ARN"
+          MAX_RETRIES=30
+          RETRY_INTERVAL=60  # segundos
+
+          for ((i=1;i<=MAX_RETRIES;i++)); do
+            STATUS=$(aws stepfunctions describe-execution \
+              --execution-arn "$EXECUTION_ARN" \
+              --query "status" \
+              --output text)
+
+            echo "[$i/$MAX_RETRIES] Estado actual: $STATUS"
+
+            if [[ "$STATUS" == "SUCCEEDED" ]]; then
+              echo "✅ Ejecución completada exitosamente."
+              break
+            elif [[ "$STATUS" == "FAILED" || "$STATUS" == "TIMED_OUT" || "$STATUS" == "ABORTED" ]]; then
+              echo "❌ Ejecución fallida: $STATUS"
+              exit 1
+            else
+              echo "⏳ Aún ejecutándose, esperando $RETRY_INTERVAL segundos..."
+              sleep $RETRY_INTERVAL
+            fi
+          done
+
+          if [[ "$STATUS" != "SUCCEEDED" ]]; then
+            echo "⏰ Tiempo de espera agotado después de $((MAX_RETRIES * RETRY_INTERVAL)) segundos"
+            exit 1
+          fi
 
   create-model:
-    needs: create-data-pipeline
+    needs: start-data-pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
