@@ -51,7 +51,7 @@ def main(api_endpoint):
     df = pd.get_dummies(df, columns=["fire_type", "daynight"])
     
     column_names = df.drop(columns=[target]).columns.tolist()
-    with open("./model/model_columns.json", "w") as f:
+    with open("./model_columns.json", "w") as f:
         json.dump(column_names, f)
 
     X = df.drop(columns=[target]).values
@@ -67,7 +67,7 @@ def main(api_endpoint):
     model.fit(X_train, y_train)
     score = model.score(X_test, y_test)
 
-    joblib.dump(model, "./model/model.joblib")
+    joblib.dump(model, "./model.joblib")
     print(f"Modelo entrenado con n={best_n} y obtuvo un score={score}.")
 
 
