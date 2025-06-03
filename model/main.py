@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import requests
 import joblib
+import sys
 
 
 def load_data_from_lambda(endpoint_url):
@@ -47,8 +48,8 @@ def evaluate_model(X, y, n_values, n_splits=10):
             metrics[k][n] = np.mean(metrics[k][n])
     return metrics
 
-def main():
-    lambda_endpoint = "https://nayoh5iwzl.execute-api.eu-central-1.amazonaws.com/data"
+def main(api_endpoint):
+    lambda_endpoint = f"{api_endpoint}/data"
     df = load_data_from_lambda(lambda_endpoint)
 
     target = "confidence"
@@ -70,4 +71,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    api_endpoint = sys.argv[1]
+    main(api_endpoint)

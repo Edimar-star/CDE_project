@@ -29,7 +29,8 @@ resource "aws_iam_role_policy" "lambda_s3_write_access" {
         ],
         Resource = [
           "arn:aws:s3:::${aws_s3_bucket.source-data-bucket.id}/raw/*",
-          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}/model/*"
+          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}/model/*",
+          "arn:aws:s3:::${aws_s3_bucket.target-data-bucket.id}/training/*"
         ]
       }
     ]
