@@ -9,16 +9,25 @@ import sys
 
 
 def load_data_from_lambda(endpoint_url):
-    """Hace una solicitud al endpoint REST de Lambda y carga los datos como DataFrame"""
-    response = requests.post(endpoint_url, json={})
-    response.raise_for_status()  # lanza excepción si falla
+    all_data = []
+    token = None
 
-    json_data = response.json()
+    while True:
+        payload = {}
+        if token:
+            payload["nextToken"] = token
 
-    if not isinstance(json_data, list):
-        raise ValueError("La respuesta del endpoint no es una lista de registros")
+        response = requests.post(endpoint, json=payload)
+        result = response.json()
 
-    return pd.DataFrame(json_data)
+        all_data.extend(result["data"])
+
+        token = result.get("nextToken")
+        if not token:
+            break
+
+    return pd.DataFrame(all_data)
+
 
 def evaluate_model(X, y, n_values, n_splits=10):
     metrics = {k: {n: [] for n in n_values} for k in [
