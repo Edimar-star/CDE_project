@@ -104,7 +104,7 @@ resource "aws_glue_catalog_table" "athena_table" {
     }
     columns {
       name = "confidence"
-      type = "int"
+      type = "string"
     }
     columns {
       name = "fire_radiative_power"
