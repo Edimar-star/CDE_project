@@ -157,7 +157,7 @@ jobs:
   destroy-resources-app:
     needs: create-model
     runs-on: ubuntu-latest
-    if: ${{ vars.TF_DESTROY == 'true' }}
+    if: ${{ vars.TF_DESTROY == 't' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
