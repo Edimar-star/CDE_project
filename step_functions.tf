@@ -77,50 +77,6 @@ resource "aws_sfn_state_machine" "etl_workflow" {
   definition = jsonencode({
     StartAt: "RunCrawler",
     States: {
-      LambdaTask1: {
-        Type: "Task",
-        Resource: "arn:aws:states:::lambda:invoke",
-        Parameters: {
-          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
-          Payload = {
-            dataset_name: "forest_fire"
-          }
-        },
-        Next: "LambdaTask2"
-      },
-      LambdaTask2: {
-        Type: "Task",
-        Resource: "arn:aws:states:::lambda:invoke",
-        Parameters: {
-          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
-          Payload = {
-            dataset_name: "ndvi"
-          }
-        },
-        Next: "LambdaTask3"
-      },
-      LambdaTask3: {
-        Type: "Task",
-        Resource: "arn:aws:states:::lambda:invoke",
-        Parameters: {
-          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
-          Payload = {
-            dataset_name: "global_climate"
-          }
-        },
-        Next: "LambdaTask4"
-      },
-      LambdaTask4: {
-        Type: "Task",
-        Resource: "arn:aws:states:::lambda:invoke",
-        Parameters: {
-          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
-          Payload = {
-            dataset_name: "population_density"
-          }
-        },
-        Next: "RunCrawler"
-      },
       RunCrawler: {
         Type: "Task",
         Resource: "arn:aws:states:::aws-sdk:glue:startCrawler",
