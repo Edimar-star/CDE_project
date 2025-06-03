@@ -34,6 +34,7 @@ resource "aws_iam_role_policy" "step_function_policy" {
           "glue:BatchGetJobRuns",
           "sagemaker:CreateTrainingJob",
           "sagemaker:DescribeTrainingJob",
+          "sagemaker:AddTags",
           "events:PutRule",
           "events:PutTargets",
           "events:DescribeRule",
@@ -74,7 +75,7 @@ resource "aws_sfn_state_machine" "etl_workflow" {
   role_arn = aws_iam_role.step_function_role.arn
 
   definition = jsonencode({
-    StartAt: "LambdaTask1",
+    StartAt: "RunCrawler",
     States: {
       LambdaTask1: {
         Type: "Task",
