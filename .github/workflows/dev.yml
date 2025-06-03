@@ -53,31 +53,31 @@ jobs:
         run: terraform apply -auto-approve
 
 
-#  start-data-pipeline:
-#    needs: create-data-pipeline
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout repo
-#        uses: actions/checkout@v3
+  start-data-pipeline:
+    needs: create-data-pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
       
-#      - name: Configure AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v2
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#      - name: Get Account ID
-#        id: account
-#        run: |
-#          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-#          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
+      - name: Get Account ID
+        id: account
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
 
-#      - name: Execute Step Function
-#        run: |
-#          aws stepfunctions start-execution \
-#            --state-machine-arn arn:aws:states:eu-central-1:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
-#            --name etl-run-$(date +%s) \
+      - name: Execute Step Function
+        run: |
+          aws stepfunctions start-execution \
+            --state-machine-arn arn:aws:states:eu-central-1:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
+            --name etl-run-$(date +%s) \
 
 
   create-model:
@@ -114,34 +114,34 @@ jobs:
         run: python3 ./model/main.py ${{ steps.api_credentials.outputs.api_id }} ${{ secrets.AWS_REGION }}
 
 
-#  destroy-resources-app:
-#    needs: create-model
-#    runs-on: ubuntu-latest
-#    if: ${{ vars.TF_DESTROY == 'true' }}
-#    steps:
-#      - name: Checkout repo
-#        uses: actions/checkout@v3
+  destroy-resources-app:
+    needs: create-model
+    runs-on: ubuntu-latest
+    if: ${{ vars.TF_DESTROY == 'true' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-#      - name: Setup Terraform
-#        uses: hashicorp/setup-terraform@v2
-#        with:
-#          terraform_version: 1.5.7
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
-#      - name: Configure AWS Credentials
-#        uses: aws-actions/configure-aws-credentials@v2
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#      - name: Terraform Init
-#        run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-#      - name: Set execute permissions on terraform-import.sh
-#        run: chmod +x ./terraform-import.sh
+      - name: Set execute permissions on terraform-import.sh
+        run: chmod +x ./terraform-import.sh
 
-#      - name: Terraform Import Resources
-#        run: ./terraform-import.sh
+      - name: Terraform Import Resources
+        run: ./terraform-import.sh
 
-#      - name: Terraform Destroy
-#        run: terraform destroy -auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve

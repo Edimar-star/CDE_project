@@ -6,6 +6,7 @@ import numpy as np
 import requests
 import joblib
 import sys
+import json
 
 
 def load_data_from_lambda(endpoint_url):
@@ -45,10 +46,14 @@ def evaluate_model(X, y, n_values, n_splits=10):
 def main(api_endpoint):
     lambda_endpoint = f"{api_endpoint}/data"
     df = load_data_from_lambda(lambda_endpoint)
-    print(df.head())
-    print(len(df))
 
     target = "confidence"
+    df = pd.get_dummies(df, columns=["fire_type", "daynight"])
+    
+    column_names = df.drop(columns=[target]).columns.tolist()
+    with open("./model/model_columns.json", "w") as f:
+        json.dump(column_names, f)
+
     X = df.drop(columns=[target]).values
     y = df[target].values
 
@@ -62,7 +67,7 @@ def main(api_endpoint):
     model.fit(X_train, y_train)
     score = model.score(X_test, y_test)
 
-    joblib.dump(model, "model.joblib")
+    joblib.dump(model, "./model/model.joblib")
     print(f"Modelo entrenado con n={best_n} y obtuvo un score={score}.")
 
 
