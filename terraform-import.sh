@@ -35,11 +35,6 @@ imports=(
   "aws_iam_role.step_function_role step-function-role"
   "aws_iam_role_policy.step_function_policy step-function-role:step-function-policy"
   "aws_sfn_state_machine.etl_workflow arn:aws:states:${region}:${account_id}:stateMachine:ETLWorkflow"
-
-  # Sagemark
-  "aws_iam_role.sagemaker_execution_role sagemaker-execution-role"
-  "aws_iam_role_policy.sagemaker_s3_access sagemaker-execution-role:sagemaker-s3-access"
-  "aws_iam_role_policy_attachment.sagemaker_policy sagemaker-execution-role/sagemaker_policy"
 )
 
 echo "Checking Terraform imports..."

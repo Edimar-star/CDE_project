@@ -1,10 +1,7 @@
-# app.py
 import streamlit as st
 import numpy as np
 import requests
 import json
-
-API_URL = "https://nayoh5iwzl.execute-api.eu-central-1.amazonaws.com/predict"
 
 st.title("🔥 Predicción de Incendios Forestales")
 
@@ -35,8 +32,8 @@ with st.form("prediction_form"):
 
 if submitted:
     try:
-        response = requests.post(API_URL, json=input_data)
-        result = response.json()
-        st.success(f"🔥 Predicción: {result.get('prediction')}")
+        X = np.array([[input_data[col] for col in columns]])
+        prediction = model.predict(X)[0]
+        st.success(f"🔥 Predicción: {prediction}")
     except Exception as e:
         st.error(f"Error en la predicción: {e}")

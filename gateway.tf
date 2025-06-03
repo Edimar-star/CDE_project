@@ -13,10 +13,10 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   payload_format_version  = "2.0"
 }
 
-# 3. Ruta: GET /predict
+# 3. Ruta: GET /data
 resource "aws_apigatewayv2_route" "lambda_route" {
   api_id    = aws_apigatewayv2_api.api.id
-  route_key = "POST /predict"
+  route_key = "POST /data"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 

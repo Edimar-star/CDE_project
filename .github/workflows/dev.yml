@@ -6,54 +6,54 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  create-data-pipeline:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
 
-    - name: Set execute permissions on package_lambda.sh
-      run: chmod +x ./lambda/package_lambda.sh
+      - name: Set execute permissions on package_lambda.sh
+        run: chmod +x ./lambda/package_lambda.sh
 
-    - name: Run Lambda Packaging Script
-      run: ./lambda/package_lambda.sh
+      - name: Run Lambda Packaging Script
+        run: ./lambda/package_lambda.sh
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.7
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Set execute permissions on terraform-import.sh
-      run: chmod +x ./terraform-import.sh
+      - name: Set execute permissions on terraform-import.sh
+        run: chmod +x ./terraform-import.sh
 
-    - name: Terraform Import Resources
-      run: ./terraform-import.sh
+      - name: Terraform Import Resources
+        run: ./terraform-import.sh
 
-    - name: Terraform Plan
-      run: terraform plan
+      - name: Terraform Plan
+        run: terraform plan
 
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
 
-  start-step-function:
-    needs: build-and-deploy
+  start-data-pipeline:
+    needs: create-data-pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Configurar credenciales de AWS
@@ -75,8 +75,21 @@ jobs:
             --state-machine-arn arn:aws:states:eu-central-1:${{ steps.account.outputs.account_id }}:stateMachine:ETLWorkflow \
             --name etl-run-$(date +%s) \
 
+  create-model:
+    needs: start-data-pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Execute python Script
+        run: python ./model/main.py
+
+
   destroy-resources-app:
-    needs: start-step-function
+    needs: create-model
     runs-on: ubuntu-latest
     if: ${{ vars.TF_DESTROY == 'true' }}
     steps:

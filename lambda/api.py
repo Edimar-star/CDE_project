@@ -1,52 +1,31 @@
 import boto3
-import tarfile
-import joblib
-import json
-import os
-import tempfile
-import numpy as np
+import csv
+import io
 
-s3 = boto3.client('s3')
-
-# Ejecuta solo una vez (fuera del handler) para evitar recarga innecesaria
-def load_model_from_s3():
-    bucket = "target-data-bucket-6i2caq"
-    key = "model/model.joblib"
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        model_path = os.path.join(tmpdir, "model.joblib")
-        s3.download_file(bucket, key, model_path)
-        model = joblib.load(model_path)
-    
-    return model
-
-model = load_model_from_s3()
+s3 = boto3.client("s3")
 
 def lambda_handler(event, context):
-    try:
-        input_data = json.loads(event["body"])
+    bucket = "target-data-bucket-6i2caq"
+    prefix = "training/"
 
-        columns = [
-            "latitude", "longitude", "population_density", "days", "wind_speed", 
-            "vapor_pressure_deficit", "vapor_pressure", "minimum_temperature", 
-            "maximum_temperature", "snow_water_equivalent", "surface_shortwave_radiation", 
-            "soil_moisture", "runoff", "precipitation_accumulation", "Reference_evapotranspiration", 
-            "climate_water_deficit", "actual_Evapotranspiration", "palmer_drought_severity_index", 
-            "brightness_temperature", "scan_fire_size", "track_fire_size", "confidence", 
-            "fire_radiative_power", "daynight", "fire_type", "n_pixels_ndvi", "ndvi", 
-            "ndvi_long_term_average", "ndvi_anomaly_percent"
-        ]
+    # Lista los objetos en el prefijo
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
 
-        X = np.array([[input_data[col] for col in columns]])
-        prediction = model.predict(X)[0]
+    all_data = []
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"prediction": int(prediction)})
-        }
+    for obj in response.get("Contents", []):
+        key = obj["Key"]
+        if key.endswith(".csv"):
+            # Descarga el archivo
+            obj_response = s3.get_object(Bucket=bucket, Key=key)
+            body = obj_response["Body"].read().decode("utf-8")
 
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
-        }
+            # Parsea el CSV
+            reader = csv.DictReader(io.StringIO(body))
+            for row in reader:
+                all_data.append(row)
+
+    return {
+        "statusCode": 200,
+        "body": all_data
+    }
