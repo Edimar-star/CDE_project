@@ -108,7 +108,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r ./model/requirements.txt
 
       - name: Execute python Script
         run: python3 ./model/main.py ${{ steps.account.outputs.api_endpoint }}
