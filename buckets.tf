@@ -51,6 +51,14 @@ resource "aws_s3_object" "lambda_zip" {
   etag   = filemd5("${path.module}/lambda/lambda_function.zip")
 }
 
+# Lambda api function script
+resource "aws_s3_object" "api_lambda_zip" {
+  bucket = aws_s3_bucket.code-bucket.id
+  key    = "lambda/api_lambda_function.zip"
+  source = "${path.module}/lambda/api_lambda_function.zip"
+  etag   = filemd5("${path.module}/lambda/api_lambda_function.zip")
+}
+
 # lambda layer
 resource "aws_s3_object" "lambda_layer" {
   bucket = aws_s3_bucket.code-bucket.id

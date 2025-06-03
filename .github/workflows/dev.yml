@@ -19,7 +19,7 @@ jobs:
         python-version: 3.9
 
     - name: Set execute permissions on package_lambda.sh
-      run: chmod +x lambda/package_lambda.sh
+      run: chmod +x ./lambda/package_lambda.sh
 
     - name: Run Lambda Packaging Script
       run: ./lambda/package_lambda.sh

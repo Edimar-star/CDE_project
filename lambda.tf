@@ -57,9 +57,8 @@ resource "aws_lambda_function" "api_lambda" {
   handler           = "api_lambda_function.lambda_handler"
   runtime           = "python3.9"
   s3_bucket         = aws_s3_bucket.code-bucket.id
-  s3_key            = aws_s3_object.lambda_zip.key
+  s3_key            = aws_s3_object.api_lambda_zip.key
   source_code_hash  = filebase64sha256("${path.module}/lambda/api_lambda_function.zip")
-  layers = [aws_lambda_layer_version.etl_layer.arn]
 
   memory_size   = 3008
   timeout       = 900 
