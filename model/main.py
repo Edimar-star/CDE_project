@@ -71,5 +71,7 @@ def main(api_endpoint):
 
 
 if __name__ == "__main__":
-    api_endpoint = sys.argv[1]
+    api_id          = sys.argv[1]
+    api_region      = sys.argv[2]
+    api_endpoint    = f"https://{api_id}.execute-api.{api_region}.amazonaws.com"
     main(api_endpoint)

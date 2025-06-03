@@ -1,8 +1,10 @@
 import streamlit as st
 import numpy as np
 import requests
+import joblib
 import json
 
+model = joblib.load("../model/model.joblib")
 st.title("🔥 Predicción de Incendios Forestales")
 
 columns = [
