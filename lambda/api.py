@@ -1,75 +1,54 @@
 import boto3
 import csv
 import io
-import json
-import base64
+import uuid
+from datetime import datetime, timedelta
 
 s3 = boto3.client("s3")
 
 def lambda_handler(event, context):
     bucket = "target-data-bucket-6i2caq"
     prefix = "training/"
-    page_size = 500  # Número de filas por lote
+    output_key = f"temp/joined_{uuid.uuid4()}.csv"
 
-    # Parsea body JSON del POST
-    try:
-        body = json.loads(event.get("body", "{}"))
-    except Exception:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Invalid JSON body"}),
-            "headers": {"Content-Type": "application/json"}
-        }
+    # Inicializa CSV en memoria
+    output_csv = io.StringIO()
+    writer = None
 
-    next_token = body.get("nextToken")
+    paginator = s3.get_paginator("list_objects_v2")
+    page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
-    # Decodifica token si existe
-    if next_token:
-        decoded = json.loads(base64.b64decode(next_token).decode("utf-8"))
-        current_key_index = decoded["key_index"]
-        row_offset = decoded["row_offset"]
-    else:
-        current_key_index = 0
-        row_offset = 0
+    for page in page_iterator:
+        for obj in page.get("Contents", []):
+            key = obj["Key"]
+            if key.endswith(".csv"):
+                obj_response = s3.get_object(Bucket=bucket, Key=key)
+                body = obj_response["Body"].read().decode("utf-8")
+                reader = csv.DictReader(io.StringIO(body))
 
-    # Lista objetos CSV
-    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
-    keys = [obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(".csv")]
+                if writer is None:
+                    writer = csv.DictWriter(output_csv, fieldnames=reader.fieldnames)
+                    writer.writeheader()
 
-    all_rows = []
-    remaining = page_size
+                for row in reader:
+                    writer.writerow(row)
 
-    while current_key_index < len(keys):
-        key = keys[current_key_index]
+    # Subir CSV combinado al bucket
+    s3.put_object(
+        Bucket=bucket,
+        Key=output_key,
+        Body=output_csv.getvalue(),
+        ContentType="text/csv"
+    )
 
-        obj_response = s3.get_object(Bucket=bucket, Key=key)
-        body = obj_response["Body"].read().decode("utf-8")
-        reader = list(csv.DictReader(io.StringIO(body)))
-
-        rows = reader[row_offset:]
-
-        to_take = min(remaining, len(rows))
-        all_rows.extend(rows[:to_take])
-        remaining -= to_take
-
-        if remaining == 0:
-            next_token_payload = {
-                "key_index": current_key_index if (row_offset + to_take) < len(reader) else current_key_index + 1,
-                "row_offset": row_offset + to_take if (row_offset + to_take) < len(reader) else 0
-            }
-            next_token = base64.b64encode(json.dumps(next_token_payload).encode("utf-8")).decode("utf-8")
-            break
-
-        current_key_index += 1
-        row_offset = 0
+    # Generar pre-signed URL (válida por 15 minutos)
+    url = s3.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={"Bucket": bucket, "Key": output_key},
+        ExpiresIn=900  # 15 minutos
+    )
 
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "data": all_rows,
-            "nextToken": next_token if remaining == 0 else None
-        }),
-        "headers": {
-            "Content-Type": "application/json"
-        }
+        "body": url
     }

@@ -111,7 +111,9 @@ jobs:
           pip install -r ./model/requirements.txt
 
       - name: Execute python Script
-        run: python3 ./model/main.py ${{ steps.account.outputs.api_id }} ${{ secrets.AWS_REGION }}
+        env:
+          API_REGION: ${{ secrets.AWS_REGION }}
+        run: python3 ./model/main.py ${{ steps.account.outputs.api_id }} "$API_ENDPOINT"
 
 
 #  destroy-resources-app:

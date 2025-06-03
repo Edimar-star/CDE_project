@@ -38,6 +38,23 @@ resource "aws_iam_role_policy" "lambda_s3_write_access" {
   })
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "temp_data_cleanup" {
+  bucket = aws_s3_bucket.target-data-bucket.id
+
+  rule {
+    id     = "expire-temp-urls"
+    status = "Enabled"
+
+    filter {
+      prefix = "temp/"
+    }
+
+    expiration {
+      days = 1
+    }
+  }
+}
+
 # Lambda creation
 resource "aws_lambda_function" "etl_lambda" {
   function_name     = "etl_lambda"

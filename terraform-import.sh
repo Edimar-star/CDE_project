@@ -11,6 +11,7 @@ imports=(
   "aws_s3_bucket.target-data-bucket target-data-bucket-6i2caq"
   "aws_s3_bucket.code-bucket code-bucket-6i2caq"
   "aws_s3_bucket.athena_results athena-results-bucket-6i2caq"
+  "aws_s3_bucket_lifecycle_configuration.temp_data_cleanup target-data-bucket-6i2caq"
 
   # Lambda ETL
   "aws_iam_role.lambda_exec_role lambda_exec_role"
@@ -30,6 +31,7 @@ imports=(
   # athena
   "aws_glue_catalog_database.athena_db ${account_id}:forest_fire_data"
   "aws_glue_catalog_table.athena_table ${account_id}:forest_fire_data:fires"
+  "aws_athena_workgroup.main primary"
   
   # Step functions
   "aws_iam_role.step_function_role step-function-role"

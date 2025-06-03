@@ -22,3 +22,17 @@ resource "aws_glue_catalog_table" "athena_table" {
     create_before_destroy = true
   }
 }
+
+resource "aws_athena_workgroup" "main" {
+  name = "primary"
+
+  configuration {
+    enforce_workgroup_configuration = true
+
+    result_configuration {
+      output_location = "s3://${aws_s3_bucket.athena_results.bucket}/results/"
+    }
+  }
+
+  state = "ENABLED"
+}

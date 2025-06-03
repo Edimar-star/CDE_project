@@ -9,24 +9,9 @@ import sys
 
 
 def load_data_from_lambda(endpoint_url):
-    all_data = []
-    token = None
-
-    while True:
-        payload = {}
-        if token:
-            payload["nextToken"] = token
-
-        response = requests.post(endpoint, json=payload)
-        result = response.json()
-
-        all_data.extend(result["data"])
-
-        token = result.get("nextToken")
-        if not token:
-            break
-
-    return pd.DataFrame(all_data)
+    response = requests.post(endpoint_url)
+    url = response.text.strip('"')  # Elimina comillas dobles si las hay
+    return pd.read_csv(url)
 
 
 def evaluate_model(X, y, n_values, n_splits=10):
@@ -60,6 +45,8 @@ def evaluate_model(X, y, n_values, n_splits=10):
 def main(api_endpoint):
     lambda_endpoint = f"{api_endpoint}/data"
     df = load_data_from_lambda(lambda_endpoint)
+    print(df.head())
+    print(len(df))
 
     target = "confidence"
     X = df.drop(columns=[target]).values
