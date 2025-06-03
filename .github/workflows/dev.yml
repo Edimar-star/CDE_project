@@ -19,9 +19,11 @@ jobs:
           python-version: 3.9
 
       - name: Set execute permissions on package_lambda.sh
+        working-directory: infraestructure
         run: chmod +x ./lambda/package_lambda.sh
 
       - name: Run Lambda Packaging Script
+        working-directory: infraestructure
         run: ./lambda/package_lambda.sh
 
       - name: Setup Terraform
@@ -37,18 +39,23 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform Init
+        working-directory: infraestructure
         run: terraform init
 
       - name: Set execute permissions on terraform-import.sh
+        working-directory: infraestructure
         run: chmod +x ./terraform-import.sh
 
       - name: Terraform Import Resources
+        working-directory: infraestructure
         run: ./terraform-import.sh
 
       - name: Terraform Plan
+        working-directory: infraestructure
         run: terraform plan
 
       - name: Terraform Apply
+        working-directory: infraestructure
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
 
@@ -146,12 +153,14 @@ jobs:
           echo "api_id=$API_ID" >> "$GITHUB_OUTPUT"
       
       - name: Install dependencies
+        working-directory: model
         run: |
           python -m pip install --upgrade pip
-          pip install -r ./model/requirements.txt
+          pip install -r requirements.txt
 
       - name: Execute python Script
-        run: python3 ./model/main.py ${{ steps.api_credentials.outputs.api_id }} ${{ secrets.AWS_REGION }}
+        working-directory: model
+        run: python3 main.py ${{ steps.api_credentials.outputs.api_id }} ${{ secrets.AWS_REGION }}
 
 
   destroy-resources-app:
@@ -175,13 +184,17 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform Init
+        working-directory: infraestructure
         run: terraform init
 
       - name: Set execute permissions on terraform-import.sh
+        working-directory: infraestructure
         run: chmod +x ./terraform-import.sh
 
       - name: Terraform Import Resources
+        working-directory: infraestructure
         run: ./terraform-import.sh
 
       - name: Terraform Destroy
+        working-directory: infraestructure
         run: terraform destroy -auto-approve

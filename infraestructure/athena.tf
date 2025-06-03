@@ -120,7 +120,7 @@ resource "aws_glue_catalog_table" "athena_table" {
     }
     columns {
       name = "n_pixels_ndvi"
-      type = "int"
+      type = "double"
     }
     columns {
       name = "ndvi"

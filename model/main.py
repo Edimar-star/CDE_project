@@ -57,7 +57,7 @@ def main(api_endpoint):
     X = df.drop(columns=[target]).values
     y = df[target].values
 
-    n_values = range(1, 101)
+    n_values = range(20, 50)
     metrics = evaluate_model(X, y, n_values)
 
     best_n = max(metrics["accuracy_test"], key=metrics["accuracy_test"].get)
