@@ -29,9 +29,7 @@ model = load_model_from_s3()
 
 def lambda_handler(event, context):
     try:
-        input_data = event.get("queryStringParameters", {})
-        if not input_data:
-            raise ValueError("No query parameters provided")
+        input_data = json.loads(event["body"])
 
         columns = [
             "latitude", "longitude", "population_density", "days", "wind_speed", 

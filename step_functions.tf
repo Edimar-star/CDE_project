@@ -33,7 +33,12 @@ resource "aws_iam_role_policy" "step_function_policy" {
           "glue:BatchGetJobs",
           "glue:BatchGetJobRuns",
           "sagemaker:CreateTrainingJob",
-          "sagemaker:DescribeTrainingJob"
+          "sagemaker:DescribeTrainingJob",
+          "events:PutRule",
+          "events:PutTargets",
+          "events:DescribeRule",
+          "events:DeleteRule",
+          "events:RemoveTargets"
         ],
         "Resource": "*"
       },

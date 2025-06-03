@@ -4,7 +4,7 @@ import numpy as np
 import requests
 import json
 
-API_URL = "https://<tu-api-id>.execute-api.eu-central-1.amazonaws.com/predict"  # Reemplaza con tu URL real
+API_URL = "https://nayoh5iwzl.execute-api.eu-central-1.amazonaws.com/predict"
 
 st.title("🔥 Predicción de Incendios Forestales")
 
@@ -35,7 +35,7 @@ with st.form("prediction_form"):
 
 if submitted:
     try:
-        response = requests.get(API_URL, params=input_data)
+        response = requests.post(API_URL, json=input_data)
         result = response.json()
         st.success(f"🔥 Predicción: {result.get('prediction')}")
     except Exception as e:
