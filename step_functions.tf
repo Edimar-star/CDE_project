@@ -75,37 +75,81 @@ resource "aws_sfn_state_machine" "etl_workflow" {
   role_arn = aws_iam_role.step_function_role.arn
 
   definition = jsonencode({
-    StartAt: "RunCrawler",
+    StartAt: "TrainModel",
     States: {
-      RunCrawler: {
-        Type: "Task",
-        Resource: "arn:aws:states:::aws-sdk:glue:startCrawler",
-        Parameters: {
-          Name: "org-report-crawler"
-        },
-        Next: "RunGlueJob"
-      },
-      RunGlueJob: {
-        Type: "Task",
-        Resource: "arn:aws:states:::glue:startJobRun.sync",
-        Parameters: {
-          JobName: "glue-job"
-        },
-        Catch: [
-          {
-            ErrorEquals: ["States.TaskFailed"],
-            ResultPath: "$.glueJobError",
-            Next: "FailGlueJob"
-          }
-        ],
-        ResultPath: "$.glueResult",
-        Next: "TrainModel"
-      },
-      FailGlueJob: {
-        Type: "Fail",
-        Error: "GlueJobFailed",
-        Cause: "El Glue Job falló"
-      },
+#      LambdaTask1: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::lambda:invoke",
+#        Parameters: {
+#          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
+#          Payload = {
+#            dataset_name: "forest_fire"
+#          }
+#        },
+#        Next: "LambdaTask2"
+#      },
+#      LambdaTask2: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::lambda:invoke",
+#        Parameters: {
+#          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
+#          Payload = {
+#            dataset_name: "ndvi"
+#          }
+#        },
+#        Next: "LambdaTask3"
+#      },
+#      LambdaTask3: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::lambda:invoke",
+#        Parameters: {
+#          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
+#          Payload = {
+#            dataset_name: "global_climate"
+#          }
+#        },
+#        Next: "LambdaTask4"
+#      },
+#      LambdaTask4: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::lambda:invoke",
+#        Parameters: {
+#          FunctionName: "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:etl_lambda",
+#          Payload = {
+#            dataset_name: "population_density"
+#          }
+#        },
+#        Next: "RunCrawler"
+#      },
+#      RunCrawler: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::aws-sdk:glue:startCrawler",
+#        Parameters: {
+#          Name: "org-report-crawler"
+#        },
+#        Next: "RunGlueJob"
+#      },
+#      RunGlueJob: {
+#        Type: "Task",
+#        Resource: "arn:aws:states:::glue:startJobRun.sync",
+#        Parameters: {
+#          JobName: "glue-job"
+#        },
+#        Catch: [
+#          {
+#            ErrorEquals: ["States.TaskFailed"],
+#            ResultPath: "$.glueJobError",
+#            Next: "FailGlueJob"
+#          }
+#        ],
+#        ResultPath: "$.glueResult",
+#        Next: "TrainModel"
+#      },
+#      FailGlueJob: {
+#        Type: "Fail",
+#        Error: "GlueJobFailed",
+#        Cause: "El Glue Job falló"
+#      },
       TrainModel: {
         Type: "Task",
         Resource: "arn:aws:states:::sagemaker:createTrainingJob.sync",

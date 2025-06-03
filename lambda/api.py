@@ -11,16 +11,11 @@ s3 = boto3.client('s3')
 # Ejecuta solo una vez (fuera del handler) para evitar recarga innecesaria
 def load_model_from_s3():
     bucket = "target-data-bucket-6i2caq"
-    key = "model/model.tar.gz"
+    key = "model/model.joblib"
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        tar_path = os.path.join(tmpdir, "model.tar.gz")
-        s3.download_file(bucket, key, tar_path)
-
-        with tarfile.open(tar_path, "r:gz") as tar:
-            tar.extractall(path=tmpdir)
-        
         model_path = os.path.join(tmpdir, "model.joblib")
+        s3.download_file(bucket, key, model_path)
         model = joblib.load(model_path)
     
     return model
