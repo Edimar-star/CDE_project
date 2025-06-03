@@ -81,7 +81,7 @@ jobs:
 
 
   create-model:
-    needs: start-data-pipeline
+    needs: create-data-pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
