@@ -156,8 +156,8 @@ resource "aws_sfn_state_machine" "etl_workflow" {
         Parameters: {
           TrainingJobName: "fires-sklearn-training-${uuid()}",
           AlgorithmSpecification: {
-            TrainingInputMode: "File",
-            TrainingImage: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3"
+            AlgorithmName: "scikit-learn",
+            TrainingInputMode: "File"
           },
           InputDataConfig: [{
             ChannelName: "train",
@@ -182,6 +182,20 @@ resource "aws_sfn_state_machine" "etl_workflow" {
             MaxRuntimeInSeconds: 900
           },
           RoleArn: "${aws_iam_role.sagemaker_execution_role.arn}"
+        },
+        ResultPath: "$.train_result",
+        Next: "CreateModel"
+      },
+      CreateModel: {
+        Type: "Task",
+        Resource: "arn:aws:states:::sagemaker:createModel",
+        Parameters: {
+          ModelName: "fires-sklearn-model-${uuid()}",
+          PrimaryContainer: {
+            Image: "683313688378.dkr.ecr.${var.aws_region}.amazonaws.com/sagemaker-scikit-learn:0.23-1-cpu-py3",
+            "ModelDataUrl.$": "$.train_result.ModelArtifacts.S3ModelArtifacts"
+          },
+          ExecutionRoleArn: "${aws_iam_role.sagemaker_execution_role.arn}"
         },
         End: true
       }
