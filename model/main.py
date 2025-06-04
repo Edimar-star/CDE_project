@@ -59,7 +59,7 @@ def main(api_endpoint):
     y = df[target].values
 
     print(f"Finding the best n")
-    n_values = range(20, 25)
+    n_values = range(1, 101)
     metrics = evaluate_model(X, y, n_values)
     best_n = max(metrics["accuracy_test"], key=metrics["accuracy_test"].get)
 

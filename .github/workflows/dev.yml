@@ -7,7 +7,9 @@ on:
     paths-ignore:
       - 'model/*.json'
       - 'model/*.joblib'
-      - '.devcontainer/*'
+      - 'app.py'
+      - 'requirements.txt'
+      - 'architecture.png'
 
 jobs:
   create-data-pipeline:
@@ -194,6 +196,15 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Set execute permissions on package_lambda.sh
+        working-directory: infraestructure
+        run: chmod +x ./lambda/package_lambda.sh
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
