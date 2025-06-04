@@ -16,7 +16,7 @@
       ]
     }
   },
-  "postCreateCommand": "pip install --user -r model/requirements.txt && pip install --user streamlit && echo '✅ Dependencies installed.'",
+  "postCreateCommand": "pip install --user -r requirements.txt && pip install --user streamlit && echo '✅ Dependencies installed.'",
   "postAttachCommand": {
     "server": "streamlit run app/app.py --server.enableCORS false --server.enableXsrfProtection false"
   },

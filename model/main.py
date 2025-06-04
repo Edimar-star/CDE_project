@@ -23,6 +23,7 @@ def evaluate_model(X, y, n_values, n_splits=10):
     splits = [train_test_split(X, y, test_size=0.25, random_state=42+i) for i in range(n_splits)]
 
     for n in n_values:
+        print(f"Testing with n = {n}")
         for X_train, X_test, y_train, y_test in splits:
             model = RandomForestClassifier(n_estimators=n, max_depth=5, class_weight="balanced", random_state=42)
             model.fit(X_train, y_train)
@@ -57,11 +58,12 @@ def main(api_endpoint):
     X = df.drop(columns=[target]).values
     y = df[target].values
 
-    n_values = range(20, 50)
+    print(f"Finding the best n")
+    n_values = range(20, 25)
     metrics = evaluate_model(X, y, n_values)
-
     best_n = max(metrics["accuracy_test"], key=metrics["accuracy_test"].get)
 
+    print("Creating the model...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
     model = RandomForestClassifier(n_estimators=best_n, max_depth=5, class_weight="balanced", random_state=42)
     model.fit(X_train, y_train)
