@@ -206,6 +206,10 @@ jobs:
         working-directory: infraestructure
         run: chmod +x ./lambda/package_lambda.sh
 
+      - name: Run Lambda Packaging Script
+        working-directory: infraestructure
+        run: ./lambda/package_lambda.sh
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
