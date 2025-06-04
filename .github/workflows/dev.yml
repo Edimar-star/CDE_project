@@ -7,7 +7,7 @@ on:
     paths-ignore:
       - 'model/*.json'
       - 'model/*.joblib'
-      - '.devcontainer'
+      - '.devcontainer/*'
 
 jobs:
   create-data-pipeline:
@@ -174,7 +174,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add model/model_columns.json model/model.joblib
           git commit -m "Auto: update model artifacts [skip ci]" || echo "No changes to commit"
-          git push origin main
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main
 
 
   destroy-resources-app:
