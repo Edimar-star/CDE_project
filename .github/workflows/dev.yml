@@ -176,7 +176,12 @@ jobs:
           git config user.email "github-actions@github.com"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
           git checkout -B main
+          
+          # Guarda cambios temporales antes del rebase
+          git stash --include-untracked
           git pull origin main --rebase
+          git stash pop
+
           git add model/model_columns.json model/model.joblib
           git commit -m "Auto: update model artifacts [skip ci]" || echo "No changes to commit"
           git push origin main
