@@ -137,6 +137,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -168,13 +170,16 @@ jobs:
 
       - name: Commit and push model artifacts
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+          git checkout -B main
+          git pull origin main --rebase
           git add model/model_columns.json model/model.joblib
           git commit -m "Auto: update model artifacts [skip ci]" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main
+          git push origin main
 
 
   destroy-resources-app:
