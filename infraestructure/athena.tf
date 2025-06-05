@@ -141,16 +141,23 @@ resource "aws_glue_catalog_table" "athena_table" {
   }
 }
 
-resource "aws_athena_workgroup" "main" {
-  name = "primary"
+resource "aws_athena_workgroup" "custom" {
+  name = "query_results"
 
   configuration {
     enforce_workgroup_configuration = true
 
     result_configuration {
       output_location = "s3://${aws_s3_bucket.athena_results.bucket}/results/"
+
+      encryption_configuration {
+        encryption_option = "SSE_S3"
+      }
     }
   }
 
   state = "ENABLED"
+  tags = {
+    Environment = "dev"
+  }
 }
